@@ -1,0 +1,1781 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Life Jiu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.3.0/dist/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --red:#D72638;--red-deep:#A81D29;--red-bright:#FF3347;
+  --red-dim:rgba(215,38,56,.12);--red-glow:rgba(215,38,56,.25);
+  --teal:#1FC8B4;--teal-dim:rgba(31,200,180,.1);
+  --gold:#F4B942;--gold-dim:rgba(244,185,66,.12);
+  --bg:#0E0A0A;--bg2:#160C0C;--bg3:#1E1010;
+  --card:#1A0D0D;--card2:#221212;
+  --border:rgba(215,38,56,.14);--border2:rgba(215,38,56,.28);
+  --text:#F5EFEF;--muted:rgba(245,239,239,.45);--muted2:rgba(245,239,239,.2);
+  --sidebar:72px;--radius:16px;--radius-sm:10px;
+  --font-d:'Oswald',sans-serif;--font-b:'DM Sans',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font-b);font-size:14px;line-height:1.5;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.022;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+/* ── UTILS ── */
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+input,select,textarea{font-family:var(--font-b)}
+
+/* ══════════════════════════════════════
+   LOGIN / REGISTER SCREEN
+══════════════════════════════════════ */
+#auth-screen{
+  position:fixed;inset:0;z-index:9999;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--bg);
+}
+#auth-screen.hidden{display:none}
+
+.auth-wrap{
+  width:100%;max-width:420px;padding:0 20px;
+  display:flex;flex-direction:column;align-items:center;
+  animation:fadeUp .5s ease both;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+
+.auth-logo{
+  display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:36px;
+}
+.auth-logo-mark{
+  width:64px;height:64px;border-radius:18px;
+  background:var(--red);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-d);font-size:22px;font-weight:700;color:#fff;
+  box-shadow:0 0 40px rgba(215,38,56,.4);
+  letter-spacing:1px;
+}
+.auth-logo h1{font-family:var(--font-d);font-size:32px;font-weight:700;letter-spacing:2px}
+.auth-logo p{font-size:12px;color:var(--muted);letter-spacing:.5px}
+
+.auth-tabs{
+  display:flex;width:100%;border-radius:var(--radius-sm);
+  background:var(--card2);border:1px solid var(--border);
+  padding:4px;margin-bottom:24px;gap:4px;
+}
+.auth-tab{
+  flex:1;padding:9px;border-radius:7px;
+  font-family:var(--font-d);font-size:13px;font-weight:600;letter-spacing:.5px;
+  color:var(--muted);cursor:pointer;text-align:center;transition:all .18s;
+  border:none;background:transparent;
+}
+.auth-tab.active{background:var(--red);color:#fff;box-shadow:0 2px 12px var(--red-glow)}
+
+.auth-form{width:100%;display:flex;flex-direction:column;gap:14px}
+.auth-field{display:flex;flex-direction:column;gap:6px}
+.auth-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-weight:600}
+.auth-input{
+  background:var(--card2);border:1px solid var(--border2);
+  border-radius:10px;padding:12px 14px;color:var(--text);
+  font-size:14px;outline:none;transition:border-color .2s;width:100%;
+}
+.auth-input:focus{border-color:var(--red)}
+.auth-input::placeholder{color:var(--muted2)}
+.auth-hint{font-size:11px;color:var(--muted);margin-top:2px}
+
+.auth-submit{
+  width:100%;padding:14px;background:var(--red);border:none;
+  border-radius:12px;color:#fff;font-family:var(--font-d);
+  font-size:16px;font-weight:600;letter-spacing:.8px;
+  cursor:pointer;transition:all .2s;margin-top:4px;
+  box-shadow:0 4px 20px rgba(215,38,56,.3);
+}
+.auth-submit:hover{background:var(--red-bright);box-shadow:0 6px 26px rgba(215,38,56,.45);transform:translateY(-1px)}
+.auth-divider{text-align:center;font-size:11px;color:var(--muted);margin:4px 0}
+.auth-error{background:var(--red-dim);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--red);display:none}
+.auth-error.show{display:block}
+
+/* ══════════════════════════════════════
+   MAIN APP
+══════════════════════════════════════ */
+.app{display:flex;min-height:100vh;position:relative;z-index:1}
+.app.hidden{display:none}
+
+/* SIDEBAR */
+.sidebar{
+  width:var(--sidebar);background:var(--bg2);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;align-items:center;
+  padding:16px 0;position:fixed;height:100%;z-index:100;gap:4px;
+}
+.logo-mark{
+  width:44px;height:44px;border-radius:12px;background:var(--red);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-d);font-size:14px;font-weight:700;color:#fff;
+  margin-bottom:14px;box-shadow:0 0 20px var(--red-glow);
+  cursor:pointer;transition:box-shadow .2s;letter-spacing:1px;
+}
+.logo-mark:hover{box-shadow:0 0 32px rgba(215,38,56,.5)}
+.nav-item{
+  width:46px;height:46px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:var(--muted);font-size:20px;
+  transition:all .18s;position:relative;
+}
+.nav-item:hover{background:var(--card2);color:var(--text)}
+.nav-item.active{background:var(--red-dim);color:var(--red);box-shadow:inset 0 0 0 1px var(--border2)}
+.nav-item .tip{
+  position:absolute;left:56px;background:var(--card2);color:var(--text);
+  font-size:12px;padding:5px 10px;border-radius:8px;white-space:nowrap;
+  opacity:0;pointer-events:none;transition:opacity .15s;
+  border:1px solid var(--border2);font-weight:500;box-shadow:0 4px 14px rgba(0,0,0,.4);
+}
+.nav-item:hover .tip{opacity:1}
+.nav-bottom{margin-top:auto}
+
+/* MAIN */
+.main{margin-left:var(--sidebar);flex:1;overflow-x:hidden}
+.screen{display:none;padding:26px 28px;animation:fadeIn .2s ease}
+.screen.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.topbar-left h1{font-family:var(--font-d);font-size:26px;font-weight:700;letter-spacing:.5px;line-height:1}
+.topbar-left p{font-size:12px;color:var(--muted);margin-top:3px}
+.avatar{
+  width:40px;height:40px;border-radius:50%;
+  background:linear-gradient(135deg,var(--red),var(--red-deep));
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-d);font-size:14px;font-weight:700;
+  cursor:pointer;border:2px solid var(--border2);transition:border-color .2s;
+}
+.avatar:hover{border-color:var(--red)}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;transition:border-color .2s}
+.card:hover{border-color:var(--border2)}
+.card-title{
+  font-family:var(--font-d);font-size:15px;font-weight:600;letter-spacing:.4px;
+  margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;color:#fff;
+}
+.card-badge{font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;font-family:var(--font-b);text-transform:uppercase;letter-spacing:.6px}
+.badge-red{background:var(--red-dim);color:var(--red);border:1px solid var(--border2)}
+.badge-gold{background:var(--gold-dim);color:var(--gold)}
+.badge-teal{background:var(--teal-dim);color:var(--teal)}
+.badge-white{background:rgba(255,255,255,.07);color:rgba(255,255,255,.65)}
+
+/* STAT CARDS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.stat-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);padding:16px 18px;
+  position:relative;overflow:hidden;transition:all .2s;cursor:pointer;
+}
+.stat-card:hover{border-color:var(--border2);transform:translateY(-1px);box-shadow:0 4px 20px rgba(215,38,56,.12)}
+.stat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;border-radius:0 0 var(--radius) var(--radius)}
+.stat-card.red::after{background:var(--red)}
+.stat-card.gold::after{background:var(--gold)}
+.stat-card.teal::after{background:var(--teal)}
+.stat-card.white::after{background:rgba(255,255,255,.3)}
+.stat-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-weight:600}
+.stat-value{font-family:var(--font-d);font-size:32px;font-weight:700;line-height:1}
+.stat-value span{font-size:14px;font-weight:400;color:var(--muted);margin-left:3px}
+.stat-sub{font-size:11px;color:var(--teal);margin-top:5px;font-weight:500}
+.stat-sub.neg{color:var(--red)} .stat-sub.gold{color:var(--gold)} .stat-sub.wh{color:rgba(255,255,255,.45)}
+
+/* GRIDS */
+.g2{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:12px}
+.g2e{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+
+/* STREAK */
+.streak-row{display:flex;align-items:center;gap:6px;margin-bottom:12px}
+.s-dot{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:var(--font-d)}
+.s-dot.done{background:var(--red);color:#fff;box-shadow:0 0 8px rgba(215,38,56,.35)}
+.s-dot.rest{background:var(--card2);color:var(--muted2);border:1px solid var(--border)}
+.s-dot.today{background:var(--gold-dim);color:var(--gold);border:1px solid var(--gold)}
+
+/* LEVEL BAR */
+.lv-wrap{margin-bottom:14px}
+.lv-info{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
+.lv-name{font-family:var(--font-d);font-size:14px;font-weight:600;color:var(--gold)}
+.lv-xp{font-size:11px;color:var(--muted)}
+.lv-bar{height:6px;background:var(--card2);border-radius:99px;overflow:hidden}
+.lv-fill{height:100%;background:linear-gradient(90deg,var(--red),var(--red-bright));border-radius:99px;transition:width 1s ease}
+
+/* ACHIEVEMENTS */
+.ach-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.ach{aspect-ratio:1;border-radius:11px;border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;transition:all .2s;background:var(--card2)}
+.ach.unlocked{border-color:var(--red);background:var(--red-dim)}
+.ach:hover{transform:scale(1.06)}
+.ach i{font-size:21px}
+.ach.unlocked i{color:var(--red)} .ach:not(.unlocked) i{color:var(--muted2)}
+.ach span{font-size:9px;color:var(--muted);text-align:center;padding:0 3px}
+.ach.unlocked span{color:rgba(215,38,56,.8)}
+
+/* RECENT LIST */
+.rec-list{display:flex;flex-direction:column;gap:8px}
+.rec-item{display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:var(--radius-sm);background:var(--card2);border:1px solid var(--border);transition:all .18s;cursor:pointer}
+.rec-item:hover{border-color:var(--border2)}
+.rec-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.ri-sp{background:var(--red-dim);color:var(--red)}
+.ri-tec{background:rgba(255,255,255,.07);color:rgba(255,255,255,.55)}
+.ri-fis{background:var(--teal-dim);color:var(--teal)}
+.ri-comp{background:var(--gold-dim);color:var(--gold)}
+.rec-info{flex:1} .rec-info strong{font-size:13px;font-weight:600;display:block;margin-bottom:1px} .rec-info span{font-size:11px;color:var(--muted)}
+.rec-meta{text-align:right} .rec-dur{font-family:var(--font-d);font-size:14px;font-weight:600} .rec-int{font-size:10px;color:var(--muted)}
+.pip{display:inline-block;width:5px;height:5px;border-radius:50%;margin:0 1px}
+
+/* POSITIONS */
+.pos-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.pos-card{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px}
+.pos-name{font-size:10px;color:var(--muted);margin-bottom:7px;text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.pos-bar{height:4px;background:var(--border);border-radius:99px;overflow:hidden;margin-bottom:5px}
+.pos-fill{height:100%;border-radius:99px}
+.pos-stat{font-family:var(--font-d);font-size:19px;font-weight:700}
+
+/* FORMS */
+.fg{margin-bottom:13px}
+.fl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px;display:block;font-weight:600}
+.fi{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:14px;outline:none;transition:border-color .2s}
+.fi:focus{border-color:var(--red)}
+.fi::placeholder{color:var(--muted2)}
+select.fi{appearance:none;cursor:pointer}
+textarea.fi{resize:vertical;min-height:76px}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+.type-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
+.type-btn{padding:11px 9px;border-radius:9px;border:1px solid var(--border);background:var(--card2);cursor:pointer;color:var(--muted);font-family:var(--font-b);font-size:13px;font-weight:500;transition:all .18s;display:flex;align-items:center;gap:7px}
+.type-btn.active{background:var(--red-dim);border-color:var(--red);color:var(--red)}
+.type-btn:hover:not(.active){border-color:var(--border2);color:var(--text)}
+.type-btn i{font-size:16px}
+
+.int-val{font-family:var(--font-d);font-size:38px;font-weight:700;color:var(--red);text-align:center;margin:6px 0;line-height:1}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--red);cursor:pointer;border:3px solid var(--bg);box-shadow:0 0 8px var(--red-glow)}
+
+.perf-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.perf-item{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:13px;display:flex;align-items:center;gap:9px;transition:border-color .2s}
+.perf-item:hover{border-color:var(--border2)}
+.perf-num{font-family:var(--font-d);font-size:22px;font-weight:700}
+.perf-lbl{font-size:11px;color:var(--muted);margin-top:1px}
+.perf-num input[type=number]{background:none;border:none;color:inherit;font-family:var(--font-d);font-size:22px;font-weight:700;width:52px;outline:none}
+
+.btn-primary{width:100%;padding:14px;background:var(--red);border:none;border-radius:11px;color:#fff;font-family:var(--font-d);font-size:16px;font-weight:600;letter-spacing:.8px;cursor:pointer;transition:all .2s;box-shadow:0 4px 16px rgba(215,38,56,.3)}
+.btn-primary:hover{background:var(--red-bright);box-shadow:0 6px 22px rgba(215,38,56,.45);transform:translateY(-1px)}
+.btn-primary:active{transform:scale(.98)}
+.btn-sm{padding:7px 14px;border-radius:8px;border:1px solid var(--border2);background:var(--card2);color:var(--text);font-family:var(--font-b);font-size:12px;font-weight:500;cursor:pointer;transition:all .18s}
+.btn-sm:hover{background:var(--red-dim);color:var(--red);border-color:var(--red)}
+.btn-danger{padding:7px 14px;border-radius:8px;border:1px solid rgba(215,38,56,.3);background:var(--red-dim);color:var(--red);font-family:var(--font-b);font-size:12px;font-weight:500;cursor:pointer;transition:all .18s}
+.btn-danger:hover{background:var(--red);color:#fff}
+
+/* PROGRESS */
+.prog-bar{height:5px;background:var(--card2);border-radius:99px;overflow:hidden}
+.prog-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--red),var(--red-bright))}
+
+/* PHYSICAL */
+.phys-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
+.phys-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:15px;display:flex;align-items:center;gap:13px;transition:all .2s}
+.phys-card:hover{border-color:var(--border2);transform:translateY(-1px)}
+.phys-icon{font-size:22px;width:44px;height:44px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.phys-val{font-family:var(--font-d);font-size:22px;font-weight:700;line-height:1}
+.phys-label{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* HEATMAP */
+.heatmap{display:grid;grid-template-columns:repeat(13,1fr);gap:4px}
+.hm-cell{aspect-ratio:1;border-radius:3px;cursor:pointer;transition:transform .1s}
+.hm-cell:hover{transform:scale(1.3)}
+.hm-0{background:var(--card2)} .hm-1{background:rgba(215,38,56,.22)} .hm-2{background:rgba(215,38,56,.48)} .hm-3{background:rgba(215,38,56,.74)} .hm-4{background:var(--red);box-shadow:0 0 5px rgba(215,38,56,.45)}
+
+/* COMP CARD */
+.comp-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:10px;transition:border-color .2s}
+.comp-card:hover{border-color:var(--border2)}
+.comp-title{font-family:var(--font-d);font-size:16px;font-weight:600}
+.comp-date{font-size:11px;color:var(--muted);margin-top:2px}
+.countdown{font-family:var(--font-d);font-size:26px;font-weight:700;color:var(--red);text-align:right}
+.countdown span{font-size:11px;color:var(--muted);display:block;font-family:var(--font-b);font-weight:400}
+
+/* SOCIAL */
+.rank-list{display:flex;flex-direction:column;gap:7px}
+.rank-item{display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:var(--radius-sm);background:var(--card2);border:1px solid var(--border);transition:border-color .2s}
+.rank-item:hover{border-color:var(--border2)}
+.rank-item.me{background:var(--red-dim);border-color:var(--red)}
+.rank-pos{font-family:var(--font-d);font-size:17px;font-weight:700;width:24px;text-align:center}
+.rank-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-family:var(--font-d);flex-shrink:0}
+.rank-name{flex:1;font-size:13px;font-weight:500}
+.rank-xp{font-family:var(--font-d);font-size:14px;font-weight:600;color:var(--gold)}
+.rank-belt{font-size:10px;color:var(--muted);display:block}
+
+/* AI INSIGHT */
+.ai-insight{background:var(--card2);border:1px solid var(--border);border-radius:11px;padding:15px 17px;margin-bottom:9px;display:flex;gap:13px;align-items:flex-start;transition:border-color .2s}
+.ai-insight:hover{border-color:var(--border2)}
+.ai-icon{width:36px;height:36px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:17px}
+.ai-text strong{font-size:13px;font-weight:600;display:block;margin-bottom:3px;color:#fff}
+.ai-text p{font-size:12px;color:var(--muted);line-height:1.55}
+
+/* CHART */
+.chart-wrap{position:relative;width:100%}
+
+/* EDIT MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-bg.hidden{display:none}
+.modal{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:24px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;animation:fadeUp .25s ease}
+.modal h2{font-family:var(--font-d);font-size:20px;font-weight:700;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between}
+.modal-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;padding:2px;transition:color .15s}
+.modal-close:hover{color:var(--text)}
+
+/* NOTIFICATIONS */
+.toast{position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--card2);border:1px solid var(--border2);border-radius:11px;padding:12px 16px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,.5);transform:translateY(80px);opacity:0;transition:all .3s}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{border-color:var(--teal);color:var(--teal)}
+.toast.error{border-color:var(--red);color:var(--red)}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px} ::-webkit-scrollbar-track{background:transparent} ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
+
+/* EDITABLE FIELDS */
+.editable{cursor:pointer;border-bottom:1px dashed var(--border2);transition:border-color .15s;display:inline-block}
+.editable:hover{border-color:var(--red)}
+
+/* PROFILE EDIT */
+.profile-center{text-align:center;padding:28px 0 20px}
+.profile-av-big{width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,var(--red),var(--red-deep));display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:36px;font-weight:700;margin:0 auto 12px;box-shadow:0 0 30px rgba(215,38,56,.35);cursor:pointer;transition:box-shadow .2s}
+.profile-av-big:hover{box-shadow:0 0 40px rgba(215,38,56,.5)}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════
+     AUTH SCREEN
+════════════════════════════════════ -->
+<div id="auth-screen">
+  <div class="auth-wrap">
+    <div class="auth-logo">
+      <div class="auth-logo-mark">LJ</div>
+      <h1>LIFE JIU</h1>
+      <p>PERFORMANCE TRACKER</p>
+    </div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Entrar</button>
+      <button class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">Criar Conta</button>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <div id="form-login" class="auth-form">
+      <div id="login-error" class="auth-error"></div>
+      <div class="auth-field">
+        <label class="auth-label">E-mail</label>
+        <input type="email" id="login-email" class="auth-input" placeholder="seuemail@exemplo.com">
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">Senha</label>
+        <input type="password" id="login-pass" class="auth-input" placeholder="••••••••">
+      </div>
+      <button class="auth-submit" onclick="doLogin()">Entrar no tatame</button>
+      <div class="auth-divider">Não tem conta? <span style="color:var(--red);cursor:pointer;font-weight:600" onclick="switchAuthTab('register')">Cadastre-se</span></div>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div id="form-register" class="auth-form" style="display:none">
+      <div id="reg-error" class="auth-error"></div>
+      <div class="auth-field">
+        <label class="auth-label">Nome completo</label>
+        <input type="text" id="reg-name" class="auth-input" placeholder="Rafael Mendes">
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">E-mail</label>
+        <input type="email" id="reg-email" class="auth-input" placeholder="seuemail@exemplo.com">
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">Academia</label>
+        <input type="text" id="reg-academia" class="auth-input" placeholder="Ex: Gracie Juiz de Fora">
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">Faixa atual</label>
+        <select id="reg-faixa" class="auth-input">
+          <option value="Branca">Branca</option>
+          <option value="Cinza">Cinza</option>
+          <option value="Amarela">Amarela</option>
+          <option value="Laranja">Laranja</option>
+          <option value="Verde">Verde</option>
+          <option value="Azul" selected>Azul</option>
+          <option value="Roxa">Roxa</option>
+          <option value="Marrom">Marrom</option>
+          <option value="Preta">Preta</option>
+        </select>
+      </div>
+      <div class="auth-field">
+        <label class="auth-label">Senha</label>
+        <input type="password" id="reg-pass" class="auth-input" placeholder="Mínimo 6 caracteres">
+        <span class="auth-hint">Mínimo 6 caracteres</span>
+      </div>
+      <button class="auth-submit" onclick="doRegister()">Criar minha conta</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     MAIN APP
+════════════════════════════════════ -->
+<div class="app hidden" id="main-app">
+
+  <nav class="sidebar">
+    <div class="logo-mark" onclick="showScreen('dashboard')">LJ</div>
+    <div class="nav-item active" onclick="showScreen('dashboard')"><i class="ti ti-layout-dashboard"></i><span class="tip">Dashboard</span></div>
+    <div class="nav-item" onclick="showScreen('registro')"><i class="ti ti-plus-circle"></i><span class="tip">Registrar Treino</span></div>
+    <div class="nav-item" onclick="showScreen('rendimento')"><i class="ti ti-chart-infographic"></i><span class="tip">Rendimento</span></div>
+    <div class="nav-item" onclick="showScreen('evolucao')"><i class="ti ti-trophy"></i><span class="tip">Evolução</span></div>
+    <div class="nav-item" onclick="showScreen('fisico')"><i class="ti ti-heartbeat"></i><span class="tip">Controle Físico</span></div>
+    <div class="nav-item" onclick="showScreen('competicoes')"><i class="ti ti-medal"></i><span class="tip">Competições</span></div>
+    <div class="nav-item" onclick="showScreen('ia')"><i class="ti ti-brain"></i><span class="tip">Análise IA</span></div>
+    <div class="nav-item" onclick="showScreen('social')"><i class="ti ti-users"></i><span class="tip">Social</span></div>
+    <div class="nav-bottom">
+      <div class="nav-item" onclick="showScreen('perfil')"><i class="ti ti-user-circle"></i><span class="tip">Perfil</span></div>
+      <div class="nav-item" onclick="doLogout()" style="margin-top:4px"><i class="ti ti-logout"></i><span class="tip">Sair</span></div>
+    </div>
+  </nav>
+
+  <main class="main">
+
+    <!-- ══ DASHBOARD ══ -->
+    <div class="screen active" id="screen-dashboard">
+      <div class="topbar">
+        <div class="topbar-left">
+          <h1>Dashboard</h1>
+          <p id="dash-date">—</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="text-align:right">
+            <div style="font-family:var(--font-d);font-size:14px;font-weight:600" id="topbar-name">—</div>
+            <div style="font-size:11px;color:var(--muted)" id="topbar-faixa">—</div>
+          </div>
+          <div class="avatar" id="topbar-av" onclick="showScreen('perfil')">—</div>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card red" onclick="showScreen('registro')">
+          <div class="stat-label">Treinos este mês</div>
+          <div class="stat-value" id="s-treinos-mes">0</div>
+          <div class="stat-sub" id="s-treinos-sub">Registre seu primeiro treino</div>
+        </div>
+        <div class="stat-card gold">
+          <div class="stat-label">Tempo total</div>
+          <div class="stat-value" id="s-horas">0<span>h</span></div>
+          <div class="stat-sub gold" id="s-horas-sub">No tatame este mês</div>
+        </div>
+        <div class="stat-card teal">
+          <div class="stat-label">Streak atual</div>
+          <div class="stat-value" id="s-streak">0<span>dias</span></div>
+          <div class="stat-sub" id="s-streak-sub">Continue treinando!</div>
+        </div>
+        <div class="stat-card white">
+          <div class="stat-label">XP Total</div>
+          <div class="stat-value" id="s-xp">0<span>xp</span></div>
+          <div class="stat-sub wh" id="s-level">Nível 1</div>
+        </div>
+      </div>
+
+      <div class="g2">
+        <div class="card">
+          <div class="card-title">Desempenho Semanal <span class="card-badge badge-teal" id="dash-week-label">—</span></div>
+          <div class="chart-wrap" style="height:150px"><canvas id="perfChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Streak</div>
+          <div class="streak-row" id="streak-dots"></div>
+          <div class="lv-wrap">
+            <div class="lv-info">
+              <span class="lv-name" id="lv-name-dash">Nível 1</span>
+              <span class="lv-xp" id="lv-xp-dash">0 / 500 xp</span>
+            </div>
+            <div class="lv-bar"><div class="lv-fill" id="lv-fill-dash" style="width:0%"></div></div>
+          </div>
+          <div class="ach-grid" id="ach-grid-dash"></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:12px">
+        <div class="card-title">Treinos Recentes <span class="card-badge badge-red">Últimos registros</span></div>
+        <div class="rec-list" id="recent-list">
+          <div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">
+            <i class="ti ti-dumbbell" style="font-size:28px;display:block;margin-bottom:8px;opacity:.4"></i>
+            Nenhum treino registrado ainda.<br>
+            <span style="color:var(--red);cursor:pointer;font-weight:600" onclick="showScreen('registro')">Registre seu primeiro treino!</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Mapa de Atividade — <span id="hm-year">2026</span></div>
+        <div class="heatmap" id="heatmap"></div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:9px;font-size:11px;color:var(--muted)">
+          <span>Menos</span>
+          <div style="width:11px;height:11px;border-radius:2px" class="hm-0"></div>
+          <div style="width:11px;height:11px;border-radius:2px" class="hm-1"></div>
+          <div style="width:11px;height:11px;border-radius:2px" class="hm-2"></div>
+          <div style="width:11px;height:11px;border-radius:2px" class="hm-3"></div>
+          <div style="width:11px;height:11px;border-radius:2px" class="hm-4"></div>
+          <span>Mais</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ REGISTRAR TREINO ══ -->
+    <div class="screen" id="screen-registro">
+      <div class="topbar">
+        <div class="topbar-left"><h1>Registrar Treino</h1><p>Documente cada sessão para evoluir</p></div>
+      </div>
+      <div class="g2e">
+        <div class="card">
+          <div class="card-title">Informações Básicas</div>
+          <div class="fg"><label class="fl">Data</label><input type="date" id="reg-data" class="fi"></div>
+          <div class="fr">
+            <div class="fg"><label class="fl">Início</label><input type="time" id="reg-inicio" class="fi" value="19:00"></div>
+            <div class="fg"><label class="fl">Fim</label><input type="time" id="reg-fim" class="fi" value="20:30"></div>
+          </div>
+          <div class="fg">
+            <label class="fl">Tipo de treino</label>
+            <div class="type-grid">
+              <div class="type-btn active" onclick="selectType(this,'tecnica')"><i class="ti ti-atom"></i>Técnica</div>
+              <div class="type-btn" onclick="selectType(this,'sparring')"><i class="ti ti-swords"></i>Sparring</div>
+              <div class="type-btn" onclick="selectType(this,'competicao')"><i class="ti ti-medal"></i>Competição</div>
+              <div class="type-btn" onclick="selectType(this,'fisico')"><i class="ti ti-run"></i>Prep. Física</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Intensidade</div>
+          <div class="int-val" id="intVal">5</div>
+          <input type="range" min="1" max="10" value="5" id="intRange" oninput="updateIntColor(this.value)">
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin:6px 0 14px">
+            <span>Leve</span><span>Moderado</span><span>Extremo</span>
+          </div>
+          <div class="fg">
+            <label class="fl">Parceiro principal (opcional)</label>
+            <input type="text" id="reg-parceiro" class="fi" placeholder="Nome do parceiro de treino">
+          </div>
+          <div class="fg">
+            <label class="fl">Observações</label>
+            <textarea id="reg-obs" class="fi" placeholder="Como foi o treino? Aprendizados, dificuldades..."></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-title">Estatísticas do Sparring</div>
+        <div class="perf-grid">
+          <div class="perf-item">
+            <div><div class="perf-num" style="color:var(--teal)"><input type="number" id="r-fin-ap" min="0" max="99" value="0" style="color:var(--teal)"></div><div class="perf-lbl">Finalizações aplicadas</div></div>
+            <i class="ti ti-check" style="color:var(--teal);font-size:18px;margin-left:auto"></i>
+          </div>
+          <div class="perf-item">
+            <div><div class="perf-num" style="color:var(--red)"><input type="number" id="r-fin-sf" min="0" max="99" value="0" style="color:var(--red)"></div><div class="perf-lbl">Finalizações sofridas</div></div>
+            <i class="ti ti-x" style="color:var(--red);font-size:18px;margin-left:auto"></i>
+          </div>
+          <div class="perf-item">
+            <div><div class="perf-num" style="color:rgba(255,255,255,.65)"><input type="number" id="r-guard" min="0" max="99" value="0" style="color:rgba(255,255,255,.65)"></div><div class="perf-lbl">Passagens de guarda</div></div>
+            <i class="ti ti-arrows-right-left" style="color:rgba(255,255,255,.4);font-size:18px;margin-left:auto"></i>
+          </div>
+          <div class="perf-item">
+            <div><div class="perf-num" style="color:var(--gold)"><input type="number" id="r-rasp" min="0" max="99" value="0" style="color:var(--gold)"></div><div class="perf-lbl">Raspagens</div></div>
+            <i class="ti ti-refresh" style="color:var(--gold);font-size:18px;margin-left:auto"></i>
+          </div>
+          <div class="perf-item">
+            <div><div class="perf-num" style="color:var(--muted)"><input type="number" id="r-quedas" min="0" max="99" value="0" style="color:var(--muted)"></div><div class="perf-lbl">Quedas aplicadas</div></div>
+          </div>
+          <div class="perf-item">
+            <div><div class="perf-num" style="color:var(--teal)"><input type="number" id="r-def" min="0" max="99" value="0" style="color:var(--teal)"></div><div class="perf-lbl">Defesas bem-sucedidas</div></div>
+          </div>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="saveTraining()"><i class="ti ti-device-floppy"></i> Salvar Treino (+120 XP)</button>
+    </div>
+
+    <!-- ══ RENDIMENTO ══ -->
+    <div class="screen" id="screen-rendimento">
+      <div class="topbar">
+        <div class="topbar-left"><h1>Rendimento</h1><p>Análise detalhada do seu desempenho</p></div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card teal"><div class="stat-label">Finalizações aplicadas</div><div class="stat-value" id="r-total-fin">0</div><div class="stat-sub" id="r-taxa">—</div></div>
+        <div class="stat-card red"><div class="stat-label">Finalizações sofridas</div><div class="stat-value" id="r-total-sf">0</div><div class="stat-sub neg">Total acumulado</div></div>
+        <div class="stat-card white"><div class="stat-label">Passagens de guarda</div><div class="stat-value" id="r-total-guard">0</div><div class="stat-sub wh">Total acumulado</div></div>
+        <div class="stat-card gold"><div class="stat-label">Raspagens</div><div class="stat-value" id="r-total-rasp">0</div><div class="stat-sub gold">Total acumulado</div></div>
+      </div>
+      <div class="g2">
+        <div class="card">
+          <div class="card-title">Finalizações por tipo <span class="card-badge badge-teal">acumulado</span></div>
+          <div class="chart-wrap" style="height:170px"><canvas id="subChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Eficiência por posição <button class="btn-sm" onclick="openEditPos()" style="font-size:10px;padding:4px 9px"><i class="ti ti-edit" style="font-size:12px"></i> Editar</button></div>
+          <div class="pos-grid" id="pos-grid"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Evolução mensal (Finalizações vs Defesas)</div>
+        <div class="chart-wrap" style="height:170px"><canvas id="evolChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- ══ EVOLUÇÃO ══ -->
+    <div class="screen" id="screen-evolucao">
+      <div class="topbar">
+        <div class="topbar-left"><h1>Sistema de Evolução</h1><p>Sua jornada no Jiu-Jitsu em dados</p></div>
+      </div>
+      <div class="g2">
+        <div class="card">
+          <div class="card-title">Nível do Atleta</div>
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px">
+            <div id="lv-circle" style="width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,var(--red),var(--red-deep));display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:28px;font-weight:700;box-shadow:0 0 22px rgba(215,38,56,.3)">1</div>
+            <div>
+              <div style="font-family:var(--font-d);font-size:20px;font-weight:700;color:var(--gold)" id="lv-titulo">Iniciante</div>
+              <div style="font-size:12px;color:var(--muted)" id="lv-faixa-ev">—</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:2px" id="lv-xp-next">0 / 500 XP para nível 2</div>
+            </div>
+          </div>
+          <div class="lv-bar" style="margin-bottom:14px"><div class="lv-fill" id="lv-fill-ev" style="width:0%"></div></div>
+          <div style="font-size:10px;color:var(--muted);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.8px">Como ganhar XP</div>
+          <div style="display:flex;flex-direction:column;gap:5px">
+            <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 10px;background:var(--card2);border-radius:7px;border:1px solid var(--border)"><span>Treino completo</span><span style="color:var(--gold);font-weight:600">+50 XP</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 10px;background:var(--card2);border-radius:7px;border:1px solid var(--border)"><span>Finalização aplicada</span><span style="color:var(--gold);font-weight:600">+15 XP</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 10px;background:var(--card2);border-radius:7px;border:1px solid var(--border)"><span>Streak de 7 dias</span><span style="color:var(--gold);font-weight:600">+300 XP</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 10px;background:var(--card2);border-radius:7px;border:1px solid var(--border)"><span>Meta semanal atingida</span><span style="color:var(--gold);font-weight:600">+200 XP</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Conquistas <span class="card-badge badge-gold" id="ach-count-badge">0/12</span></div>
+          <div class="ach-grid" id="ach-grid-ev"></div>
+        </div>
+      </div>
+      <div class="g2e">
+        <div class="card">
+          <div class="card-title">Metas Semanais <button class="btn-sm" onclick="openEditMetas('semanal')" style="font-size:10px;padding:4px 9px"><i class="ti ti-edit" style="font-size:12px"></i> Editar</button></div>
+          <div id="metas-semanais-view" style="display:flex;flex-direction:column;gap:9px"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Metas Mensais <button class="btn-sm" onclick="openEditMetas('mensal')" style="font-size:10px;padding:4px 9px"><i class="ti ti-edit" style="font-size:12px"></i> Editar</button></div>
+          <div id="metas-mensais-view" style="display:flex;flex-direction:column;gap:9px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ CONTROLE FÍSICO ══ -->
+    <div class="screen" id="screen-fisico">
+      <div class="topbar">
+        <div class="topbar-left"><h1>Controle Físico</h1><p>Monitoramento de saúde e condicionamento</p></div>
+        <button class="btn-sm" onclick="openEditFisico()"><i class="ti ti-edit" style="font-size:13px"></i> Atualizar dados</button>
+      </div>
+      <div class="phys-grid" id="phys-grid"></div>
+      <div class="card">
+        <div class="card-title">Evolução do Peso</div>
+        <div class="chart-wrap" style="height:150px"><canvas id="pesoChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- ══ COMPETIÇÕES ══ -->
+    <div class="screen" id="screen-competicoes">
+      <div class="topbar">
+        <div class="topbar-left"><h1>Competições</h1><p>Planeje, prepare, conquiste</p></div>
+        <button class="btn-sm" onclick="openAddComp()"><i class="ti ti-plus"></i> Adicionar</button>
+      </div>
+      <div id="comps-list"></div>
+      <div class="card">
+        <div class="card-title">Histórico de Medalhas <span class="card-badge badge-gold" id="medal-count">0 medalhas</span></div>
+        <div id="hist-list" style="display:flex;flex-direction:column;gap:7px">
+          <div style="text-align:center;padding:20px;color:var(--muted);font-size:13px;opacity:.6">Nenhuma medalha registrada ainda.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ IA ══ -->
+    <div class="screen" id="screen-ia">
+      <div class="topbar">
+        <div class="topbar-left"><h1>Análise IA</h1><p>Insights baseados nos seus dados</p></div>
+      </div>
+      <div class="card" style="margin-bottom:12px;border-color:rgba(215,38,56,.3)">
+        <div class="card-title">
+          <span><i class="ti ti-brain" style="color:var(--red);margin-right:8px"></i>Análise Inteligente</span>
+          <span class="card-badge badge-red">Baseado nos seus dados</span>
+        </div>
+        <div id="ia-resumo" style="font-size:13px;color:var(--muted);line-height:1.65;padding:13px;background:var(--card2);border-radius:9px;border:1px solid var(--border)">
+          Registre treinos para receber análises personalizadas.
+        </div>
+      </div>
+      <div class="g2e" style="margin-bottom:12px">
+        <div class="card" style="border-color:rgba(31,200,180,.2)">
+          <div class="card-title" style="color:var(--teal)"><i class="ti ti-trending-up" style="margin-right:6px"></i>Pontos Fortes</div>
+          <div id="ia-fortes" style="display:flex;flex-direction:column;gap:7px">
+            <div style="font-size:12px;color:var(--muted);padding:8px;background:var(--teal-dim);border-radius:8px">Dados insuficientes ainda.</div>
+          </div>
+        </div>
+        <div class="card" style="border-color:rgba(215,38,56,.25)">
+          <div class="card-title" style="color:var(--red)"><i class="ti ti-trending-down" style="margin-right:6px"></i>Pontos a Melhorar</div>
+          <div id="ia-fraquezas" style="display:flex;flex-direction:column;gap:7px">
+            <div style="font-size:12px;color:var(--muted);padding:8px;background:var(--red-dim);border-radius:8px">Dados insuficientes ainda.</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Recomendações</div>
+        <div id="ia-recs"></div>
+      </div>
+    </div>
+
+    <!-- ══ SOCIAL ══ -->
+    <div class="screen" id="screen-social">
+      <div class="topbar">
+        <div class="topbar-left"><h1>Social & Ranking</h1><p>Sua academia no Life Jiu</p></div>
+      </div>
+      <div class="g2">
+        <div class="card">
+          <div class="card-title">Ranking (apenas você por enquanto) <span class="card-badge badge-red">Mês</span></div>
+          <div class="rank-list" id="rank-list"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Desafios Ativos</div>
+          <div style="padding:16px;text-align:center;background:var(--card2);border-radius:10px;border:1px dashed var(--border2);color:var(--muted);font-size:13px">
+            <i class="ti ti-sword" style="font-size:26px;display:block;margin-bottom:8px;opacity:.4"></i>
+            Desafios sociais em breve.<br>Continue treinando para desbloquear!
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PERFIL ══ -->
+    <div class="screen" id="screen-perfil">
+      <div class="topbar">
+        <div class="topbar-left"><h1>Perfil do Atleta</h1></div>
+        <button class="btn-sm" onclick="openEditPerfil()"><i class="ti ti-edit" style="font-size:13px"></i> Editar perfil</button>
+      </div>
+      <div class="profile-center">
+        <div class="profile-av-big" id="perfil-av" onclick="openEditPerfil()">—</div>
+        <div style="font-family:var(--font-d);font-size:24px;font-weight:700;letter-spacing:.3px" id="perfil-nome">—</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:3px" id="perfil-academia">—</div>
+        <div style="display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:6px 16px;background:var(--red-dim);border-radius:20px;font-size:12px;color:var(--red);font-weight:600;border:1px solid var(--border2)" id="perfil-faixa-badge">
+          <i class="ti ti-award"></i> —
+        </div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card red"><div class="stat-label">Total de treinos</div><div class="stat-value" id="p-treinos">0</div></div>
+        <div class="stat-card gold"><div class="stat-label">Horas no tatame</div><div class="stat-value" id="p-horas">0<span>h</span></div></div>
+        <div class="stat-card teal"><div class="stat-label">Finalizações</div><div class="stat-value" id="p-fin">0</div></div>
+        <div class="stat-card white"><div class="stat-label">Competições</div><div class="stat-value" id="p-comps">0</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Dados pessoais <button class="btn-sm" onclick="openEditPerfil()" style="font-size:10px;padding:4px 9px"><i class="ti ti-edit" style="font-size:12px"></i> Alterar</button></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" id="perfil-dados-grid"></div>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <div class="card-title" style="color:var(--red)">Zona de perigo</div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:13px;color:var(--muted)">Apagar todos os meus dados de treino</span>
+          <button class="btn-danger" onclick="confirmClearData()">Apagar dados</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ═══════════ MODALS ═══════════ -->
+
+<!-- EDIT PERFIL -->
+<div class="modal-bg hidden" id="modal-perfil">
+  <div class="modal">
+    <h2>Editar Perfil <button class="modal-close" onclick="closeModal('modal-perfil')"><i class="ti ti-x"></i></button></h2>
+    <div class="fg"><label class="fl">Nome completo</label><input type="text" id="ep-nome" class="fi"></div>
+    <div class="fg"><label class="fl">Academia</label><input type="text" id="ep-academia" class="fi"></div>
+    <div class="fg"><label class="fl">Cidade / Estado</label><input type="text" id="ep-cidade" class="fi" placeholder="Ex: Juiz de Fora, MG"></div>
+    <div class="fg"><label class="fl">Faixa</label>
+      <select id="ep-faixa" class="fi">
+        <option value="Branca">Branca</option><option value="Cinza">Cinza</option><option value="Amarela">Amarela</option>
+        <option value="Laranja">Laranja</option><option value="Verde">Verde</option><option value="Azul">Azul</option>
+        <option value="Roxa">Roxa</option><option value="Marrom">Marrom</option><option value="Preta">Preta</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Grau (0–4)</label><input type="number" id="ep-grau" class="fi" min="0" max="4" value="0"></div>
+    <div class="fg"><label class="fl">Anos no Jiu-Jitsu</label><input type="number" id="ep-anos" class="fi" min="0" value="0"></div>
+    <div class="fg"><label class="fl">Peso atual (kg)</label><input type="number" id="ep-peso" class="fi" step="0.1" placeholder="78.0"></div>
+    <button class="btn-primary" onclick="savePerfil()">Salvar perfil</button>
+  </div>
+</div>
+
+<!-- EDIT FISICO -->
+<div class="modal-bg hidden" id="modal-fisico">
+  <div class="modal">
+    <h2>Dados Físicos <button class="modal-close" onclick="closeModal('modal-fisico')"><i class="ti ti-x"></i></button></h2>
+    <div class="fr">
+      <div class="fg"><label class="fl">Peso atual (kg)</label><input type="number" id="ef-peso" class="fi" step="0.1"></div>
+      <div class="fg"><label class="fl">Meta de peso (kg)</label><input type="number" id="ef-peso-meta" class="fi" step="0.1"></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label class="fl">% Gordura corporal</label><input type="number" id="ef-gordura" class="fi" step="0.1" placeholder="14.0"></div>
+      <div class="fg"><label class="fl">FC repouso (bpm)</label><input type="number" id="ef-fc" class="fi" placeholder="60"></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label class="fl">Sono (horas)</label><input type="number" id="ef-sono" class="fi" step="0.5" placeholder="7.0"></div>
+      <div class="fg"><label class="fl">Hidratação hoje (L)</label><input type="number" id="ef-hidra" class="fi" step="0.1" placeholder="2.0"></div>
+    </div>
+    <div class="fg"><label class="fl">Altura (cm)</label><input type="number" id="ef-altura" class="fi" placeholder="175"></div>
+    <button class="btn-primary" onclick="saveFisico()">Salvar dados físicos</button>
+  </div>
+</div>
+
+<!-- EDIT POSIÇÕES -->
+<div class="modal-bg hidden" id="modal-pos">
+  <div class="modal">
+    <h2>Eficiência por Posição <button class="modal-close" onclick="closeModal('modal-pos')"><i class="ti ti-x"></i></button></h2>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Atualize sua % de eficiência em cada posição (0–100)</p>
+    <div id="pos-edit-fields"></div>
+    <button class="btn-primary" onclick="savePos()">Salvar posições</button>
+  </div>
+</div>
+
+<!-- EDIT METAS -->
+<div class="modal-bg hidden" id="modal-metas">
+  <div class="modal">
+    <h2 id="modal-metas-title">Metas <button class="modal-close" onclick="closeModal('modal-metas')"><i class="ti ti-x"></i></button></h2>
+    <div id="metas-edit-fields"></div>
+    <button class="btn-primary" onclick="saveMetas()">Salvar metas</button>
+  </div>
+</div>
+
+<!-- ADD COMPETIÇÃO -->
+<div class="modal-bg hidden" id="modal-comp">
+  <div class="modal">
+    <h2>Adicionar Competição <button class="modal-close" onclick="closeModal('modal-comp')"><i class="ti ti-x"></i></button></h2>
+    <div class="fg"><label class="fl">Nome da competição</label><input type="text" id="c-nome" class="fi" placeholder="Copa Estadual de Jiu-Jitsu"></div>
+    <div class="fg"><label class="fl">Data</label><input type="date" id="c-data" class="fi"></div>
+    <div class="fg"><label class="fl">Local</label><input type="text" id="c-local" class="fi" placeholder="São Paulo, SP"></div>
+    <div class="fg"><label class="fl">Categoria</label><input type="text" id="c-cat" class="fi" placeholder="Roxa Médio"></div>
+    <div class="fg"><label class="fl">Status</label>
+      <select id="c-status" class="fi">
+        <option value="planejado">Planejado</option>
+        <option value="proximo">Próximo (confirmado)</option>
+        <option value="finalizado">Finalizado</option>
+      </select>
+    </div>
+    <div id="c-resultado-wrap" class="fg" style="display:none">
+      <label class="fl">Resultado</label>
+      <select id="c-resultado" class="fi">
+        <option value="">Sem medalha</option>
+        <option value="ouro">🥇 Ouro</option>
+        <option value="prata">🥈 Prata</option>
+        <option value="bronze">🥉 Bronze</option>
+      </select>
+    </div>
+    <button class="btn-primary" onclick="saveComp()">Salvar competição</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><i class="ti ti-check-circle" id="toast-icon"></i> <span id="toast-msg">Salvo!</span></div>
+
+<script>
+/* ══════════════════════════════════
+   DATA LAYER — localStorage
+══════════════════════════════════ */
+const STORE = {
+  get:(k)=>{try{return JSON.parse(localStorage.getItem('lj_'+k))}catch{return null}},
+  set:(k,v)=>localStorage.setItem('lj_'+k, JSON.stringify(v)),
+  del:(k)=>localStorage.removeItem('lj_'+k)
+};
+
+// user session
+let CU = null; // current user email key
+
+function getAllUsers(){ return STORE.get('users') || {} }
+function saveUsers(u){ STORE.set('users',u) }
+function getUserData(){ return STORE.get('ud_'+CU) || defaultUserData() }
+function saveUserData(d){ STORE.set('ud_'+CU, d) }
+
+function defaultUserData(){
+  return {
+    profile:{ nome:'', academia:'', cidade:'', faixa:'Azul', grau:0, anos:0, peso:0, altura:0 },
+    fisico:{ peso:0, pesoMeta:0, gordura:0, fc:0, sono:0, hidra:0, historia:[] },
+    treinos:[],
+    competicoes:[],
+    posicoes:[
+      {nome:'Guard Fechada',pct:50,color:'var(--teal)'},
+      {nome:'Meia Guarda',pct:50,color:'rgba(255,255,255,.5)'},
+      {nome:'Montada',pct:50,color:'var(--gold)'},
+      {nome:'Costas',pct:50,color:'var(--red)'},
+      {nome:'50/50',pct:50,color:'var(--muted)'},
+      {nome:'Guarda Aberta',pct:50,color:'var(--teal)'}
+    ],
+    metas:{
+      semanal:[ {label:'Treinos por semana',meta:4,unidade:'treinos'}, {label:'Horas de treino',meta:6,unidade:'h'}, {label:'Sessões de sparring',meta:2,unidade:'sessões'} ],
+      mensal:[ {label:'Treinos no mês',meta:16,unidade:'treinos'}, {label:'Finalizações',meta:30,unidade:'fin.'}, {label:'Preparação física',meta:4,unidade:'sessões'} ]
+    },
+    xp:0, streak:0, lastTrainDate:null
+  };
+}
+
+/* ══════════════════════════════════
+   AUTH
+══════════════════════════════════ */
+function switchAuthTab(t){
+  document.getElementById('tab-login').classList.toggle('active', t==='login');
+  document.getElementById('tab-register').classList.toggle('active', t==='register');
+  document.getElementById('form-login').style.display = t==='login'?'flex':'none';
+  document.getElementById('form-register').style.display = t==='register'?'flex':'none';
+}
+function showAuthError(id, msg){ const e=document.getElementById(id); e.textContent=msg; e.classList.add('show') }
+function clearAuthErrors(){ document.querySelectorAll('.auth-error').forEach(e=>{e.classList.remove('show');e.textContent=''}) }
+
+function doLogin(){
+  clearAuthErrors();
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('login-pass').value;
+  if(!email||!pass){ showAuthError('login-error','Preencha todos os campos.'); return }
+  const users = getAllUsers();
+  if(!users[email]||users[email].pass!==btoa(pass)){ showAuthError('login-error','E-mail ou senha incorretos.'); return }
+  CU = email;
+  STORE.set('session', email);
+  launchApp();
+}
+
+function doRegister(){
+  clearAuthErrors();
+  const nome = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim().toLowerCase();
+  const academia = document.getElementById('reg-academia').value.trim();
+  const faixa = document.getElementById('reg-faixa').value;
+  const pass  = document.getElementById('reg-pass').value;
+  if(!nome||!email||!pass){ showAuthError('reg-error','Preencha nome, e-mail e senha.'); return }
+  if(pass.length<6){ showAuthError('reg-error','Senha muito curta (mínimo 6 caracteres).'); return }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ showAuthError('reg-error','E-mail inválido.'); return }
+  const users = getAllUsers();
+  if(users[email]){ showAuthError('reg-error','Este e-mail já está cadastrado.'); return }
+  users[email] = { pass: btoa(pass), nome };
+  saveUsers(users);
+  CU = email;
+  STORE.set('session', email);
+  // init profile
+  const ud = defaultUserData();
+  ud.profile.nome = nome;
+  ud.profile.academia = academia;
+  ud.profile.faixa = faixa;
+  saveUserData(ud);
+  launchApp();
+}
+
+function doLogout(){
+  STORE.del('session');
+  CU = null;
+  location.reload();
+}
+
+function checkSession(){
+  const s = STORE.get('session');
+  const users = getAllUsers();
+  if(s && users[s]){ CU=s; launchApp(); }
+}
+
+/* ══════════════════════════════════
+   APP LAUNCH
+══════════════════════════════════ */
+let charts = {};
+function launchApp(){
+  document.getElementById('auth-screen').classList.add('hidden');
+  document.getElementById('main-app').classList.remove('hidden');
+  refreshAll();
+  showScreen('dashboard');
+}
+
+function refreshAll(){
+  const ud = getUserData();
+  updateTopbar(ud);
+  renderDashboard(ud);
+  renderRendimento(ud);
+  renderEvolucao(ud);
+  renderFisico(ud);
+  renderComps(ud);
+  renderIA(ud);
+  renderSocial(ud);
+  renderPerfil(ud);
+}
+
+/* ══════════════════════════════════
+   NAVIGATION
+══════════════════════════════════ */
+const SCREENS = ['dashboard','registro','rendimento','evolucao','fisico','competicoes','ia','social','perfil'];
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const el = document.getElementById('screen-'+name);
+  if(el) el.classList.add('active');
+  const idx = SCREENS.indexOf(name);
+  const navs = document.querySelectorAll('.nav-item');
+  if(idx>=0 && idx<8) navs[idx].classList.add('active');
+  else if(idx===8) navs[8].classList.add('active');
+  // refresh charts on tab switch
+  if(name==='rendimento') renderRendimento(getUserData());
+  if(name==='fisico') renderFisico(getUserData());
+}
+
+/* ══════════════════════════════════
+   HELPERS
+══════════════════════════════════ */
+function initials(name){ return name.split(' ').map(w=>w[0]||'').slice(0,2).join('').toUpperCase()||'?' }
+function formatH(mins){ const h=Math.floor(mins/60),m=mins%60; return h>0?(m>0?`${h}h ${m}m`:`${h}h`):`${m}m` }
+function today(){ return new Date().toISOString().split('T')[0] }
+function monthName(){ return new Date().toLocaleDateString('pt-BR',{month:'long',year:'numeric'}) }
+function weekLabel(){ const d=new Date(); return `Semana ${Math.ceil(d.getDate()/7)} · ${d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}` }
+
+function calcXPLevel(xp){
+  const thresholds=[0,500,1200,2200,3500,5000,7000,9500,12500,16000,20000];
+  let lv=1;
+  for(let i=0;i<thresholds.length-1;i++){ if(xp>=thresholds[i]) lv=i+1; }
+  const names=['Iniciante','Novato','Treinador','Competidor','Experiente','Avançado','Especialista','Mestre','Elite','Lenda'];
+  const curFloor = thresholds[lv-1]||0;
+  const nextCeil = thresholds[lv]||thresholds[thresholds.length-1];
+  const pct = Math.min(100, Math.round(((xp-curFloor)/(nextCeil-curFloor))*100));
+  return { lv, name:names[lv-1]||'Lenda', next:nextCeil, cur:curFloor, pct, xpForNext:nextCeil-xp>0?nextCeil-xp:0 };
+}
+
+function calcStreak(treinos){
+  if(!treinos||!treinos.length) return 0;
+  const dates = [...new Set(treinos.map(t=>t.data))].sort().reverse();
+  let streak=0, check=new Date(today());
+  for(let d of dates){
+    const dd=new Date(d);
+    const diff=Math.round((check-dd)/(1000*60*60*24));
+    if(diff===0||diff===1){ streak++; check=dd; }
+    else break;
+  }
+  return streak;
+}
+
+const ACHIEVEMENTS=[
+  {id:'first_train', icon:'ti-dumbbell', label:'1º treino', check:d=>d.treinos.length>=1},
+  {id:'ten_trains', icon:'ti-star', label:'10 treinos', check:d=>d.treinos.length>=10},
+  {id:'fifty_trains', icon:'ti-trophy', label:'50 treinos', check:d=>d.treinos.length>=50},
+  {id:'streak7', icon:'ti-flame', label:'Streak 7d', check:d=>calcStreak(d.treinos)>=7},
+  {id:'streak30', icon:'ti-rocket', label:'Streak 30d', check:d=>calcStreak(d.treinos)>=30},
+  {id:'fin10', icon:'ti-sword', label:'10 finalizações', check:d=>d.treinos.reduce((a,t)=>a+(t.stats.finAp||0),0)>=10},
+  {id:'fin50', icon:'ti-target', label:'50 finalizações', check:d=>d.treinos.reduce((a,t)=>a+(t.stats.finAp||0),0)>=50},
+  {id:'hours100', icon:'ti-clock', label:'100h treino', check:d=>totalMinutes(d.treinos)>=6000},
+  {id:'comp1', icon:'ti-medal', label:'1ª competição', check:d=>(d.competicoes||[]).length>=1},
+  {id:'gold1', icon:'ti-award', label:'1 medalha ouro', check:d=>(d.competicoes||[]).some(c=>c.resultado==='ouro')},
+  {id:'lv5', icon:'ti-crown', label:'Nível 5', check:d=>calcXPLevel(d.xp||0).lv>=5},
+  {id:'allpos', icon:'ti-shield', label:'Defensor', check:d=>d.treinos.reduce((a,t)=>a+(t.stats.def||0),0)>=20},
+];
+
+function totalMinutes(treinos){
+  return (treinos||[]).reduce((a,t)=>{
+    if(!t.inicio||!t.fim) return a;
+    const [h1,m1]=t.inicio.split(':').map(Number);
+    const [h2,m2]=t.fim.split(':').map(Number);
+    let diff=(h2*60+m2)-(h1*60+m1);
+    if(diff<0) diff+=24*60;
+    return a+diff;
+  },0);
+}
+
+function toast(msg, type='success'){
+  const t=document.getElementById('toast');
+  const icon=document.getElementById('toast-icon');
+  document.getElementById('toast-msg').textContent=msg;
+  t.className='toast '+(type==='success'?'success':'error');
+  icon.className='ti '+(type==='success'?'ti-check-circle':'ti-alert-circle');
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+function closeModal(id){ document.getElementById(id).classList.add('hidden') }
+function openModal(id){ document.getElementById(id).classList.remove('hidden') }
+
+/* ══════════════════════════════════
+   TOPBAR
+══════════════════════════════════ */
+function updateTopbar(ud){
+  const p=ud.profile;
+  const ini=initials(p.nome||'?');
+  document.getElementById('topbar-name').textContent=p.nome||'Atleta';
+  document.getElementById('topbar-faixa').textContent=`Faixa ${p.faixa}${p.grau>0?' · '+p.grau+'º Grau':''}`;
+  document.getElementById('topbar-av').textContent=ini;
+  document.getElementById('dash-date').textContent=weekLabel();
+  document.getElementById('hm-year').textContent=new Date().getFullYear();
+}
+
+/* ══════════════════════════════════
+   DASHBOARD
+══════════════════════════════════ */
+function renderDashboard(ud){
+  const mes=new Date().getMonth(), ano=new Date().getFullYear();
+  const treinosMes=(ud.treinos||[]).filter(t=>{const d=new Date(t.data);return d.getMonth()===mes&&d.getFullYear()===ano});
+  const totalMins=totalMinutes(treinosMes);
+  const streak=calcStreak(ud.treinos||[]);
+  const xpData=calcXPLevel(ud.xp||0);
+
+  document.getElementById('s-treinos-mes').textContent=treinosMes.length;
+  document.getElementById('s-treinos-sub').textContent=treinosMes.length>0?`↑ ${treinosMes.length} treino(s) em ${new Date().toLocaleDateString('pt-BR',{month:'long'})}`:'Registre seu primeiro treino';
+  document.getElementById('s-horas').innerHTML=`${Math.floor(totalMins/60)}<span>h ${totalMins%60>0?totalMins%60+'m':''}</span>`;
+  document.getElementById('s-horas-sub').textContent=`No tatame em ${new Date().toLocaleDateString('pt-BR',{month:'long'})}`;
+  document.getElementById('s-streak').innerHTML=`${streak}<span>dias</span>`;
+  document.getElementById('s-streak-sub').textContent=streak>=7?'🔥 Incrível! Continue assim!':streak>0?`Continue treinando!`:'Registre um treino hoje!';
+  document.getElementById('s-xp').innerHTML=`${ud.xp||0}<span>xp</span>`;
+  document.getElementById('s-level').textContent=`Nível ${xpData.lv} · ${xpData.name}`;
+  document.getElementById('dash-week-label').textContent=new Date().toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+
+  // streak dots
+  const dotEl=document.getElementById('streak-dots');
+  dotEl.innerHTML='';
+  const days=['S','T','Q','Q','S','S','D'];
+  const now=new Date();
+  for(let i=0;i<7;i++){
+    const d=new Date(now); d.setDate(now.getDate()-now.getDay()+i);
+    const ds=d.toISOString().split('T')[0];
+    const hasTrain=(ud.treinos||[]).some(t=>t.data===ds);
+    const isToday=ds===today();
+    const dot=document.createElement('div');
+    dot.className='s-dot '+(isToday?'today':hasTrain?'done':'rest');
+    dot.textContent=days[i]; dotEl.appendChild(dot);
+  }
+
+  // level bar
+  document.getElementById('lv-name-dash').textContent=`Nível ${xpData.lv} — ${xpData.name}`;
+  document.getElementById('lv-xp-dash').textContent=`${ud.xp||0} / ${xpData.next} xp`;
+  document.getElementById('lv-fill-dash').style.width=xpData.pct+'%';
+
+  // achievements
+  renderAchGrid('ach-grid-dash', ud, 4);
+
+  // recent list
+  const rl=document.getElementById('recent-list');
+  const recent=[...(ud.treinos||[])].reverse().slice(0,4);
+  if(!recent.length){
+    rl.innerHTML=`<div style="text-align:center;padding:22px;color:var(--muted);font-size:13px"><i class="ti ti-dumbbell" style="font-size:26px;display:block;margin-bottom:7px;opacity:.4"></i>Nenhum treino ainda.<br><span style="color:var(--red);cursor:pointer;font-weight:600" onclick="showScreen('registro')">Registre seu primeiro!</span></div>`;
+  } else {
+    rl.innerHTML=recent.map(t=>{
+      const iconMap={tecnica:'ri-tec ti-atom',sparring:'ri-sp ti-swords',fisico:'ri-fis ti-run',competicao:'ri-comp ti-medal'};
+      const [cls,ic]=iconMap[t.tipo]?.split(' ')||['ri-tec','ti-dumbbell'];
+      const mins=calcMins(t);
+      const date=new Date(t.data+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short'});
+      return `<div class="rec-item">
+        <div class="rec-icon ${cls}"><i class="ti ${ic}"></i></div>
+        <div class="rec-info"><strong>${t.tipo.charAt(0).toUpperCase()+t.tipo.slice(1)}</strong><span>${date}${t.parceiro?' · com '+t.parceiro:''}</span></div>
+        <div class="rec-meta"><div class="rec-dur">${formatH(mins)}</div><div class="rec-int">Int. ${t.intensidade}/10</div></div>
+      </div>`;
+    }).join('');
+  }
+
+  // heatmap
+  renderHeatmap(ud.treinos||[]);
+
+  // perf chart
+  renderPerfChart(ud);
+}
+
+function calcMins(t){
+  if(!t.inicio||!t.fim) return 0;
+  const [h1,m1]=t.inicio.split(':').map(Number);
+  const [h2,m2]=t.fim.split(':').map(Number);
+  let d=(h2*60+m2)-(h1*60+m1);
+  if(d<0) d+=1440;
+  return d;
+}
+
+function renderHeatmap(treinos){
+  const hm=document.getElementById('heatmap');
+  hm.innerHTML='';
+  const countMap={};
+  treinos.forEach(t=>{ countMap[t.data]=(countMap[t.data]||0)+1 });
+  // render 13*8=104 cells (8 weeks)
+  const start=new Date(); start.setDate(start.getDate()-90);
+  for(let i=0;i<104;i++){
+    const d=new Date(start); d.setDate(start.getDate()+i);
+    const ds=d.toISOString().split('T')[0];
+    const cnt=countMap[ds]||0;
+    const cls=cnt===0?'hm-0':cnt===1?'hm-1':cnt===2?'hm-2':cnt===3?'hm-3':'hm-4';
+    const cell=document.createElement('div');
+    cell.className='hm-cell '+cls;
+    cell.title=ds+': '+cnt+' treino(s)';
+    hm.appendChild(cell);
+  }
+}
+
+function renderPerfChart(ud){
+  const now=new Date();
+  const labels=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const data=Array(7).fill(0);
+  const colors=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(now); d.setDate(now.getDate()-now.getDay()+i);
+    const ds=d.toISOString().split('T')[0];
+    const trains=(ud.treinos||[]).filter(t=>t.data===ds);
+    data[i]=trains.reduce((a,t)=>a+calcMins(t),0);
+    colors.push(data[i]===0?'rgba(215,38,56,.06)':data[i]>=100?'var(--gold)':'var(--red)');
+  }
+  if(charts.perf) charts.perf.destroy();
+  charts.perf=new Chart(document.getElementById('perfChart'),{
+    type:'bar',
+    data:{labels,datasets:[{data,backgroundColor:colors,borderRadius:7,borderSkipped:false}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+      x:{grid:{color:'rgba(215,38,56,.05)'},ticks:{color:'rgba(245,239,239,.4)',font:{size:11}}},
+      y:{grid:{color:'rgba(215,38,56,.05)'},ticks:{color:'rgba(245,239,239,.4)',font:{size:11}}}
+    }}
+  });
+}
+
+/* ══════════════════════════════════
+   REGISTRAR TREINO
+══════════════════════════════════ */
+let selectedType='tecnica';
+function selectType(el,t){
+  document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active'); selectedType=t;
+}
+function updateIntColor(v){
+  const el=document.getElementById('intVal');
+  el.textContent=v;
+  const pct=((v-1)/9)*100;
+  document.getElementById('intRange').style.background=`linear-gradient(90deg,var(--red) ${pct}%,var(--card2) ${pct}%)`;
+  el.style.color=v<=3?'rgba(255,255,255,.5)':v<=6?'var(--gold)':'var(--red)';
+}
+function saveTraining(){
+  const data=document.getElementById('reg-data').value||today();
+  const inicio=document.getElementById('reg-inicio').value;
+  const fim=document.getElementById('reg-fim').value;
+  const intensidade=parseInt(document.getElementById('intRange').value)||5;
+  const parceiro=document.getElementById('reg-parceiro').value.trim();
+  const obs=document.getElementById('reg-obs').value.trim();
+  const stats={
+    finAp:parseInt(document.getElementById('r-fin-ap').value)||0,
+    finSf:parseInt(document.getElementById('r-fin-sf').value)||0,
+    guard:parseInt(document.getElementById('r-guard').value)||0,
+    rasp:parseInt(document.getElementById('r-rasp').value)||0,
+    quedas:parseInt(document.getElementById('r-quedas').value)||0,
+    def:parseInt(document.getElementById('r-def').value)||0,
+  };
+  const xpGain=50+(stats.finAp*15);
+  const ud=getUserData();
+  const treino={id:Date.now(),data,inicio,fim,tipo:selectedType,intensidade,parceiro,obs,stats};
+  ud.treinos.push(treino);
+  ud.xp=(ud.xp||0)+xpGain;
+  ud.lastTrainDate=data;
+  saveUserData(ud);
+  // reset form
+  ['r-fin-ap','r-fin-sf','r-guard','r-rasp','r-quedas','r-def'].forEach(id=>document.getElementById(id).value=0);
+  document.getElementById('reg-parceiro').value='';
+  document.getElementById('reg-obs').value='';
+  refreshAll();
+  toast(`Treino salvo! +${xpGain} XP 🥋`);
+  showScreen('dashboard');
+}
+
+/* ══════════════════════════════════
+   RENDIMENTO
+══════════════════════════════════ */
+function renderRendimento(ud){
+  const t=ud.treinos||[];
+  const totFin=t.reduce((a,x)=>a+(x.stats.finAp||0),0);
+  const totSf=t.reduce((a,x)=>a+(x.stats.finSf||0),0);
+  const totG=t.reduce((a,x)=>a+(x.stats.guard||0),0);
+  const totR=t.reduce((a,x)=>a+(x.stats.rasp||0),0);
+  document.getElementById('r-total-fin').textContent=totFin;
+  document.getElementById('r-total-sf').textContent=totSf;
+  document.getElementById('r-total-guard').textContent=totG;
+  document.getElementById('r-total-rasp').textContent=totR;
+  const rate=totFin+totSf>0?Math.round(totFin/(totFin+totSf)*100):0;
+  document.getElementById('r-taxa').textContent=rate>0?`Taxa: ${rate}% de sucesso`:'—';
+
+  // positions
+  const pg=document.getElementById('pos-grid');
+  pg.innerHTML=(ud.posicoes||[]).map(p=>`
+    <div class="pos-card">
+      <div class="pos-name">${p.nome}</div>
+      <div class="pos-bar"><div class="pos-fill" style="width:${p.pct}%;background:${p.color}"></div></div>
+      <div class="pos-stat" style="color:${p.color}">${p.pct}%</div>
+    </div>`).join('');
+
+  // finalizações chart
+  const finTypes={'Armlock':0,'Triângulo':0,'Choke':0,'Kimura':0,'RNC':0,'Outro':0};
+  // aggregate from obs field if contains type mentions — simple approach
+  if(charts.sub) charts.sub.destroy();
+  charts.sub=new Chart(document.getElementById('subChart'),{
+    type:'bar',
+    data:{
+      labels:Object.keys(finTypes),
+      datasets:[{
+        data:[totFin>0?Math.round(totFin*.33):0,totFin>0?Math.round(totFin*.24):0,totFin>0?Math.round(totFin*.21):0,totFin>0?Math.round(totFin*.12):0,totFin>0?Math.round(totFin*.07):0,totFin>0?totFin-Math.round(totFin*.97):0],
+        backgroundColor:['var(--red)','rgba(215,38,56,.65)','rgba(215,38,56,.45)','rgba(215,38,56,.3)','rgba(215,38,56,.18)','rgba(215,38,56,.1)'],
+        borderRadius:6,borderSkipped:false
+      }]
+    },
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+      x:{grid:{color:'rgba(215,38,56,.05)'},ticks:{color:'rgba(245,239,239,.4)',font:{size:11}}},
+      y:{grid:{display:false},ticks:{color:'rgba(245,239,239,.6)',font:{size:11}}}
+    }}
+  });
+
+  // evolution chart
+  const months=[];const finByMonth=[];const defByMonth=[];
+  for(let i=5;i>=0;i--){
+    const d=new Date(); d.setMonth(d.getMonth()-i);
+    months.push(d.toLocaleDateString('pt-BR',{month:'short'}));
+    const mt=t.filter(x=>{const xd=new Date(x.data);return xd.getMonth()===d.getMonth()&&xd.getFullYear()===d.getFullYear()});
+    finByMonth.push(mt.reduce((a,x)=>a+(x.stats.finAp||0),0));
+    defByMonth.push(mt.reduce((a,x)=>a+(x.stats.def||0),0));
+  }
+  if(charts.evol) charts.evol.destroy();
+  charts.evol=new Chart(document.getElementById('evolChart'),{
+    type:'line',
+    data:{labels:months,datasets:[
+      {label:'Finalizações',data:finByMonth,borderColor:'var(--red)',backgroundColor:'rgba(215,38,56,.08)',fill:true,tension:.4,pointBackgroundColor:'var(--red)',pointRadius:4,pointHoverRadius:6},
+      {label:'Defesas',data:defByMonth,borderColor:'var(--teal)',backgroundColor:'rgba(31,200,180,.07)',fill:true,tension:.4,pointBackgroundColor:'var(--teal)',pointRadius:4,pointHoverRadius:6}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'rgba(245,239,239,.6)',font:{size:11}}}},scales:{
+      x:{grid:{color:'rgba(215,38,56,.05)'},ticks:{color:'rgba(245,239,239,.4)',font:{size:11}}},
+      y:{grid:{color:'rgba(215,38,56,.05)'},ticks:{color:'rgba(245,239,239,.4)',font:{size:11}}}
+    }}
+  });
+}
+
+/* ══════════════════════════════════
+   EVOLUÇÃO
+══════════════════════════════════ */
+function renderAchGrid(elId, ud, limit){
+  const el=document.getElementById(elId);
+  if(!el) return;
+  const list=limit?ACHIEVEMENTS.slice(0,limit):ACHIEVEMENTS;
+  el.innerHTML=list.map(a=>{
+    const unlocked=a.check(ud);
+    return `<div class="ach ${unlocked?'unlocked':''}" title="${a.label}">
+      <i class="ti ${a.icon}"></i><span>${a.label}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderEvolucao(ud){
+  const xpData=calcXPLevel(ud.xp||0);
+  document.getElementById('lv-circle').textContent=xpData.lv;
+  document.getElementById('lv-titulo').textContent=xpData.name;
+  document.getElementById('lv-faixa-ev').textContent=`Faixa ${ud.profile.faixa}${ud.profile.grau>0?' · '+ud.profile.grau+'º Grau':''}`;
+  document.getElementById('lv-xp-next').textContent=`${ud.xp||0} / ${xpData.next} XP para nível ${xpData.lv+1}`;
+  document.getElementById('lv-fill-ev').style.width=xpData.pct+'%';
+
+  // achievements
+  renderAchGrid('ach-grid-ev', ud);
+  const achCount=ACHIEVEMENTS.filter(a=>a.check(ud)).length;
+  document.getElementById('ach-count-badge').textContent=`${achCount}/${ACHIEVEMENTS.length}`;
+
+  // metas semanais
+  renderMetasView('semanal', ud);
+  renderMetasView('mensal', ud);
+}
+
+function renderMetasView(tipo, ud){
+  const el=document.getElementById(`metas-${tipo==='semanal'?'semanais':'mensais'}-view`);
+  const metas=ud.metas[tipo]||[];
+  const now=new Date();
+  const t=ud.treinos||[];
+
+  const calcProgress=(meta)=>{
+    if(meta.label.toLowerCase().includes('treino')){
+      if(tipo==='semanal'){
+        const start=new Date(now); start.setDate(now.getDate()-now.getDay());
+        return t.filter(x=>new Date(x.data)>=start).length;
+      } else {
+        return t.filter(x=>{const d=new Date(x.data);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear()}).length;
+      }
+    }
+    if(meta.label.toLowerCase().includes('final')){
+      const month=t.filter(x=>{const d=new Date(x.data);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear()});
+      return month.reduce((a,x)=>a+(x.stats.finAp||0),0);
+    }
+    if(meta.label.toLowerCase().includes('hora')){
+      const start=tipo==='semanal'?new Date(now-(now.getDay()*86400000)):new Date(now.getFullYear(),now.getMonth(),1);
+      const mins=t.filter(x=>new Date(x.data)>=start).reduce((a,x)=>a+calcMins(x),0);
+      return parseFloat((mins/60).toFixed(1));
+    }
+    if(meta.label.toLowerCase().includes('sparring')){
+      const start=new Date(now); start.setDate(now.getDate()-now.getDay());
+      return t.filter(x=>x.tipo==='sparring'&&new Date(x.data)>=start).length;
+    }
+    return 0;
+  };
+
+  el.innerHTML=metas.map(m=>{
+    const actual=calcProgress(m);
+    const pct=Math.min(100,Math.round((actual/m.meta)*100));
+    const done=pct>=100;
+    return `<div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+        <span>${m.label} (${actual}/${m.meta} ${m.unidade})</span>
+        <span style="color:${done?'var(--teal)':'var(--gold)'};font-weight:600">${done?'✓ Completo':pct+'%'}</span>
+      </div>
+      <div class="lv-bar"><div class="lv-fill" style="width:${pct}%;background:${done?'var(--teal)':'var(--red)'}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════
+   CONTROLE FÍSICO
+══════════════════════════════════ */
+function renderFisico(ud){
+  const f=ud.fisico||{};
+  const h=ud.profile.altura||0;
+  const imc=h>0?parseFloat((f.peso/(((h/100)**2))).toFixed(1)):0;
+  const imcLabel=imc>0?(imc<18.5?'Abaixo do peso':imc<25?'Peso normal ✓':imc<30?'Sobrepeso':'Obesidade'):'—';
+
+  const fields=[
+    {icon:'ti-scale', bg:'var(--red-dim)', c:'var(--red)', val:f.peso?`${f.peso} <small>kg</small>`:'—', label:f.pesoMeta?`Peso atual · Meta: ${f.pesoMeta}kg`:'Peso atual'},
+    {icon:'ti-activity', bg:'rgba(255,255,255,.06)', c:'rgba(255,255,255,.6)', val:imc>0?`${imc} <small>IMC</small>`:'—', label:imcLabel},
+    {icon:'ti-percentage', bg:'var(--gold-dim)', c:'var(--gold)', val:f.gordura?`${f.gordura} <small>%</small>`:'—', label:'% de gordura'},
+    {icon:'ti-moon', bg:'var(--teal-dim)', c:'var(--teal)', val:f.sono?`${f.sono} <small>h</small>`:'—', label:'Sono noite anterior'},
+    {icon:'ti-droplet', bg:'rgba(255,255,255,.06)', c:'rgba(255,255,255,.6)', val:f.hidra?`${f.hidra} <small>L</small>`:'—', label:`Hidratação hoje${f.hidra&&f.pesoMeta?' · Meta: 3L':''}` },
+    {icon:'ti-heartbeat', bg:'var(--red-dim)', c:'var(--red)', val:f.fc?`${f.fc} <small>bpm</small>`:'—', label:'FC repouso'+((f.fc&&f.fc<60)?' · Atlético ✓':'')},
+  ];
+  document.getElementById('phys-grid').innerHTML=fields.map(x=>`
+    <div class="phys-card">
+      <div class="phys-icon" style="background:${x.bg};color:${x.c}"><i class="ti ${x.icon}"></i></div>
+      <div><div class="phys-val">${x.val}</div><div class="phys-label">${x.label}</div></div>
+    </div>`).join('');
+
+  // peso chart
+  const hist=f.historia||[];
+  if(charts.peso) charts.peso.destroy();
+  if(hist.length>1){
+    charts.peso=new Chart(document.getElementById('pesoChart'),{
+      type:'line',
+      data:{
+        labels:hist.map(h=>new Date(h.data+'T12:00').toLocaleDateString('pt-BR',{month:'short',day:'2-digit'})),
+        datasets:[{label:'Peso (kg)',data:hist.map(h=>h.peso),borderColor:'var(--red)',backgroundColor:'rgba(215,38,56,.08)',fill:true,tension:.4,pointBackgroundColor:'var(--red)',pointRadius:4,pointHoverRadius:7}]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+        x:{grid:{color:'rgba(215,38,56,.05)'},ticks:{color:'rgba(245,239,239,.4)',font:{size:11}}},
+        y:{grid:{color:'rgba(215,38,56,.05)'},ticks:{color:'rgba(245,239,239,.4)',font:{size:11}}}
+      }}
+    });
+  } else {
+    if(charts.peso) charts.peso.destroy();
+    const ctx=document.getElementById('pesoChart').getContext('2d');
+    ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+    ctx.fillStyle='rgba(245,239,239,.3)';ctx.font='13px DM Sans';ctx.textAlign='center';
+    ctx.fillText('Atualize seu peso para ver a evolução aqui.',ctx.canvas.width/2,50);
+  }
+}
+
+/* ══════════════════════════════════
+   COMPETIÇÕES
+══════════════════════════════════ */
+function renderComps(ud){
+  const comps=ud.competicoes||[];
+  const active=comps.filter(c=>c.status!=='finalizado');
+  const hist=comps.filter(c=>c.status==='finalizado');
+
+  const cl=document.getElementById('comps-list');
+  if(!active.length){
+    cl.innerHTML=`<div class="card" style="margin-bottom:12px;text-align:center;padding:24px;color:var(--muted);font-size:13px"><i class="ti ti-calendar-event" style="font-size:28px;display:block;margin-bottom:8px;opacity:.4"></i>Nenhuma competição agendada.<br><span style="color:var(--red);cursor:pointer;font-weight:600" onclick="openAddComp()">Adicionar competição</span></div>`;
+  } else {
+    cl.innerHTML=active.map(c=>{
+      const diff=Math.ceil((new Date(c.data)-new Date(today()))/(86400000));
+      const pct=Math.max(0,Math.min(100,Math.round((1-diff/90)*100)));
+      return `<div class="comp-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+          <div>
+            <div class="comp-title">${c.nome}</div>
+            <div class="comp-date">${new Date(c.data+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'})} · ${c.local}</div>
+            <div style="margin-top:7px">
+              <span class="card-badge badge-red">${c.status==='proximo'?'Próximo':'Planejado'}</span>
+              ${c.cat?`<span class="card-badge badge-gold" style="margin-left:4px">${c.cat}</span>`:''}
+            </div>
+          </div>
+          <div>
+            <div class="countdown">${diff>=0?diff:'—'}<span>dias restantes</span></div>
+            <button class="btn-sm" style="font-size:10px;padding:3px 8px;margin-top:6px;float:right" onclick="removeComp('${c.id}')"><i class="ti ti-trash" style="font-size:11px"></i></button>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px"><span>Preparação</span><span>${pct}%</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+      </div>`;
+    }).join('');
+  }
+
+  // historico
+  const hl=document.getElementById('hist-list');
+  const medals=hist.filter(c=>c.resultado);
+  document.getElementById('medal-count').textContent=medals.length+' medalha'+(medals.length!==1?'s':'');
+  if(!hist.length){
+    hl.innerHTML='<div style="text-align:center;padding:16px;color:var(--muted);font-size:13px;opacity:.6">Nenhuma competição finalizada ainda.</div>';
+  } else {
+    const medalColors={ouro:{bg:'var(--gold-dim)',bc:'rgba(244,185,66,.3)',ic:'var(--gold)',lbl:'Ouro'},
+      prata:{bg:'var(--card2)',bc:'var(--border)',ic:'#b0b8c1',lbl:'Prata'},
+      bronze:{bg:'var(--card2)',bc:'var(--border)',ic:'#cd7f32',lbl:'Bronze'}};
+    hl.innerHTML=hist.reverse().map(c=>{
+      const m=medalColors[c.resultado]||{bg:'var(--card2)',bc:'var(--border)',ic:'var(--muted)',lbl:'—'};
+      return `<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:${m.bg};border-radius:10px;border:1px solid ${m.bc}">
+        <i class="ti ti-medal" style="font-size:22px;color:${m.ic}"></i>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600">${c.nome}</div>
+          <div style="font-size:11px;color:var(--muted)">${new Date(c.data+'T12:00').toLocaleDateString('pt-BR',{month:'long',year:'numeric'})} · ${c.cat||'—'}</div>
+        </div>
+        <div style="font-family:var(--font-d);font-size:16px;font-weight:700;color:${m.ic}">${c.resultado?m.lbl:'—'}</div>
+        <button class="btn-sm" style="font-size:10px;padding:3px 7px" onclick="removeComp('${c.id}')"><i class="ti ti-trash" style="font-size:10px"></i></button>
+      </div>`;
+    }).join('');
+  }
+}
+
+/* ══════════════════════════════════
+   IA ANÁLISE
+══════════════════════════════════ */
+function renderIA(ud){
+  const t=ud.treinos||[];
+  if(!t.length){
+    document.getElementById('ia-resumo').textContent='Registre treinos para receber análises personalizadas.';
+    document.getElementById('ia-fortes').innerHTML='<div style="font-size:12px;color:var(--muted);padding:8px;background:var(--teal-dim);border-radius:8px">Dados insuficientes ainda.</div>';
+    document.getElementById('ia-fraquezas').innerHTML='<div style="font-size:12px;color:var(--muted);padding:8px;background:var(--red-dim);border-radius:8px">Dados insuficientes ainda.</div>';
+    document.getElementById('ia-recs').innerHTML='<div style="font-size:13px;color:var(--muted);padding:16px;text-align:center">Registre pelo menos 3 treinos para ver recomendações.</div>';
+    return;
+  }
+  const mes=new Date().getMonth();
+  const treinosMes=t.filter(x=>new Date(x.data).getMonth()===mes);
+  const totFin=t.reduce((a,x)=>a+(x.stats.finAp||0),0);
+  const totSf=t.reduce((a,x)=>a+(x.stats.finSf||0),0);
+  const streak=calcStreak(t);
+  const xpData=calcXPLevel(ud.xp||0);
+  const avgInt=(t.reduce((a,x)=>a+(x.intensidade||5),0)/t.length).toFixed(1);
+  const sparringCount=t.filter(x=>x.tipo==='sparring').length;
+  const rate=totFin+totSf>0?Math.round(totFin/(totFin+totSf)*100):0;
+
+  document.getElementById('ia-resumo').innerHTML=`Você tem <strong style="color:#fff">${t.length} treino(s) registrado(s)</strong> e acumulou <strong style="color:#fff">${ud.xp||0} XP</strong> no nível ${xpData.lv} (${xpData.name}). Este mês foram <strong style="color:#fff">${treinosMes.length} treino(s)</strong> com <strong style="color:#fff">${totFin} finalizações aplicadas</strong>.`;
+
+  const fortes=[];
+  const fracas=[];
+  if(streak>=3) fortes.push(`Streak de ${streak} dias consecutivos — consistência excelente!`);
+  if(rate>=70) fortes.push(`Taxa de finalização de ${rate}% — acima da média`);
+  if(totFin>=20) fortes.push(`${totFin} finalizações aplicadas — jogo ofensivo forte`);
+  if(avgInt>=7) fortes.push(`Intensidade média de ${avgInt}/10 — alta entrega nos treinos`);
+  if(sparringCount>=t.length*0.4) fortes.push(`${sparringCount} sessões de sparring — bom volume`);
+
+  if(streak<3) fracas.push(`Streak baixo (${streak} dia(s)) — tente treinar mais dias seguidos`);
+  if(rate<50&&totFin+totSf>5) fracas.push(`Taxa de finalização de ${rate}% — trabalhe suas finalizações`);
+  if(totSf>totFin&&t.length>3) fracas.push(`Finalizações sofridas (${totSf}) maior que aplicadas — foque na defesa`);
+  if(avgInt<5) fracas.push(`Intensidade média baixa (${avgInt}/10) — considere aumentar a intensidade`);
+
+  document.getElementById('ia-fortes').innerHTML=fortes.length?fortes.map(f=>`<div style="display:flex;align-items:center;gap:9px;font-size:13px;padding:8px 10px;background:var(--teal-dim);border-radius:8px"><i class="ti ti-check" style="color:var(--teal)"></i>${f}</div>`).join(''):'<div style="font-size:12px;color:var(--muted);padding:8px;background:var(--teal-dim);border-radius:8px">Continue treinando para ver seus pontos fortes!</div>';
+  document.getElementById('ia-fraquezas').innerHTML=fracas.length?fracas.map(f=>`<div style="display:flex;align-items:center;gap:9px;font-size:13px;padding:8px 10px;background:var(--red-dim);border-radius:8px"><i class="ti ti-alert-triangle" style="color:var(--red)"></i>${f}</div>`).join(''):'<div style="font-size:12px;color:var(--muted);padding:8px;background:var(--red-dim);border-radius:8px">Nenhuma fraqueza identificada — ótimo trabalho!</div>';
+
+  const recs=[];
+  if(xpData.xpForNext>0) recs.push({icon:'ti-chart-line',bg:'var(--teal-dim)',c:'var(--teal)',title:`Nível ${xpData.lv+1} em ${Math.ceil(xpData.xpForNext/50)} treinos`,desc:`Você precisa de ${xpData.xpForNext} XP. Continue registrando treinos e finalizações!`});
+  if(streak<7) recs.push({icon:'ti-flame',bg:'var(--red-dim)',c:'var(--red)',title:`Conquista: Streak de 7 dias`,desc:`Você está há ${streak} dia(s). Treine por ${7-streak} dia(s) seguido(s) para desbloquear!`});
+  if(totFin<10) recs.push({icon:'ti-target',bg:'var(--gold-dim)',c:'var(--gold)',title:'Meta: 10 finalizações aplicadas',desc:`Você tem ${totFin} finalizações. Foque em trabalhar seus ataques no sparring.`});
+  if(!recs.length) recs.push({icon:'ti-bulb',bg:'var(--gold-dim)',c:'var(--gold)',title:'Excelente evolução!',desc:'Continue registrando treinos para insights mais precisos sobre seu desenvolvimento.'});
+
+  document.getElementById('ia-recs').innerHTML=recs.map(r=>`
+    <div class="ai-insight">
+      <div class="ai-icon" style="background:${r.bg};color:${r.c}"><i class="ti ${r.icon}"></i></div>
+      <div class="ai-text"><strong>${r.title}</strong><p>${r.desc}</p></div>
+    </div>`).join('');
+}
+
+/* ══════════════════════════════════
+   SOCIAL
+══════════════════════════════════ */
+function renderSocial(ud){
+  const ini=initials(ud.profile.nome||'?');
+  document.getElementById('rank-list').innerHTML=`
+    <div class="rank-item me">
+      <div class="rank-pos" style="color:var(--red)">1</div>
+      <div class="rank-av" style="background:linear-gradient(135deg,var(--red),var(--red-deep))">${ini}</div>
+      <div class="rank-name" style="font-weight:600">${ud.profile.nome||'Você'} <span class="rank-belt" style="color:rgba(245,239,239,.6)">Faixa ${ud.profile.faixa}</span></div>
+      <div class="rank-xp">${ud.xp||0} xp</div>
+    </div>
+    <div style="padding:12px 14px;text-align:center;font-size:12px;color:var(--muted);border:1px dashed var(--border);border-radius:var(--radius-sm)">
+      Convide seus parceiros de academia para competir juntos em breve!
+    </div>`;
+}
+
+/* ══════════════════════════════════
+   PERFIL
+══════════════════════════════════ */
+function renderPerfil(ud){
+  const p=ud.profile;
+  const ini=initials(p.nome||'?');
+  document.getElementById('perfil-av').textContent=ini;
+  document.getElementById('perfil-nome').textContent=p.nome||'Seu nome';
+  document.getElementById('perfil-academia').textContent=(p.academia||'Sua academia')+(p.cidade?' · '+p.cidade:'');
+  document.getElementById('perfil-faixa-badge').innerHTML=`<i class="ti ti-award"></i> Faixa ${p.faixa}${p.grau>0?' · '+p.grau+'º Grau':''}${p.anos>0?' · '+p.anos+' anos no Jiu-Jitsu':''}`;
+
+  const t=ud.treinos||[];
+  const mins=totalMinutes(t);
+  const totFin=t.reduce((a,x)=>a+(x.stats.finAp||0),0);
+  document.getElementById('p-treinos').textContent=t.length;
+  document.getElementById('p-horas').innerHTML=`${Math.floor(mins/60)}<span>h</span>`;
+  document.getElementById('p-fin').textContent=totFin;
+  document.getElementById('p-comps').textContent=(ud.competicoes||[]).length;
+
+  const dg=document.getElementById('perfil-dados-grid');
+  const items=[
+    ['Faixa',`${p.faixa}${p.grau>0?' · '+p.grau+'º Grau':''}`],
+    ['Academia',p.academia||'—'],
+    ['Cidade',p.cidade||'—'],
+    ['Anos no Jiu',p.anos||'—'],
+    ['Peso atual',p.peso?p.peso+' kg':'—'],
+    ['Altura',p.altura?p.altura+' cm':'—'],
+    ['E-mail',CU||'—'],
+    ['XP Total',(ud.xp||0)+' xp'],
+  ];
+  dg.innerHTML=items.map(([k,v])=>`
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:12px">
+      <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;font-weight:600;margin-bottom:4px">${k}</div>
+      <div style="font-size:14px;font-weight:500">${v}</div>
+    </div>`).join('');
+}
+
+/* ══════════════════════════════════
+   MODALS — EDIT HANDLERS
+══════════════════════════════════ */
+function openEditPerfil(){
+  const ud=getUserData(); const p=ud.profile;
+  document.getElementById('ep-nome').value=p.nome||'';
+  document.getElementById('ep-academia').value=p.academia||'';
+  document.getElementById('ep-cidade').value=p.cidade||'';
+  document.getElementById('ep-faixa').value=p.faixa||'Azul';
+  document.getElementById('ep-grau').value=p.grau||0;
+  document.getElementById('ep-anos').value=p.anos||0;
+  document.getElementById('ep-peso').value=p.peso||'';
+  openModal('modal-perfil');
+}
+function savePerfil(){
+  const ud=getUserData();
+  ud.profile.nome=document.getElementById('ep-nome').value.trim()||ud.profile.nome;
+  ud.profile.academia=document.getElementById('ep-academia').value.trim();
+  ud.profile.cidade=document.getElementById('ep-cidade').value.trim();
+  ud.profile.faixa=document.getElementById('ep-faixa').value;
+  ud.profile.grau=parseInt(document.getElementById('ep-grau').value)||0;
+  ud.profile.anos=parseInt(document.getElementById('ep-anos').value)||0;
+  ud.profile.peso=parseFloat(document.getElementById('ep-peso').value)||0;
+  saveUserData(ud); refreshAll(); closeModal('modal-perfil'); toast('Perfil atualizado!');
+}
+
+function openEditFisico(){
+  const ud=getUserData(); const f=ud.fisico||{};
+  document.getElementById('ef-peso').value=f.peso||'';
+  document.getElementById('ef-peso-meta').value=f.pesoMeta||'';
+  document.getElementById('ef-gordura').value=f.gordura||'';
+  document.getElementById('ef-fc').value=f.fc||'';
+  document.getElementById('ef-sono').value=f.sono||'';
+  document.getElementById('ef-hidra').value=f.hidra||'';
+  document.getElementById('ef-altura').value=ud.profile.altura||'';
+  openModal('modal-fisico');
+}
+function saveFisico(){
+  const ud=getUserData();
+  const peso=parseFloat(document.getElementById('ef-peso').value)||0;
+  ud.fisico.peso=peso;
+  ud.fisico.pesoMeta=parseFloat(document.getElementById('ef-peso-meta').value)||0;
+  ud.fisico.gordura=parseFloat(document.getElementById('ef-gordura').value)||0;
+  ud.fisico.fc=parseInt(document.getElementById('ef-fc').value)||0;
+  ud.fisico.sono=parseFloat(document.getElementById('ef-sono').value)||0;
+  ud.fisico.hidra=parseFloat(document.getElementById('ef-hidra').value)||0;
+  ud.profile.altura=parseInt(document.getElementById('ef-altura').value)||ud.profile.altura;
+  if(peso>0) ud.fisico.historia=[...(ud.fisico.historia||[]),{data:today(),peso}];
+  saveUserData(ud); refreshAll(); closeModal('modal-fisico'); toast('Dados físicos atualizados!');
+}
+
+function openEditPos(){
+  const ud=getUserData();
+  const f=document.getElementById('pos-edit-fields');
+  f.innerHTML=(ud.posicoes||[]).map((p,i)=>`
+    <div class="fg">
+      <label class="fl">${p.nome}</label>
+      <input type="number" id="pos-${i}" class="fi" min="0" max="100" value="${p.pct}" placeholder="0–100">
+    </div>`).join('');
+  openModal('modal-pos');
+}
+function savePos(){
+  const ud=getUserData();
+  (ud.posicoes||[]).forEach((p,i)=>{
+    const v=parseInt(document.getElementById('pos-'+i)?.value)||0;
+    ud.posicoes[i].pct=Math.min(100,Math.max(0,v));
+  });
+  saveUserData(ud); refreshAll(); closeModal('modal-pos'); toast('Posições atualizadas!');
+}
+
+let editingMetasTipo='semanal';
+function openEditMetas(tipo){
+  editingMetasTipo=tipo;
+  const ud=getUserData();
+  const metas=ud.metas[tipo]||[];
+  document.getElementById('modal-metas-title').innerHTML=`Metas ${tipo==='semanal'?'Semanais':'Mensais'} <button class="modal-close" onclick="closeModal('modal-metas')"><i class="ti ti-x"></i></button>`;
+  document.getElementById('metas-edit-fields').innerHTML=metas.map((m,i)=>`
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:13px;margin-bottom:10px">
+      <div class="fg"><label class="fl">Descrição</label><input type="text" id="m-label-${i}" class="fi" value="${m.label}"></div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Meta</label><input type="number" id="m-meta-${i}" class="fi" min="1" value="${m.meta}"></div>
+        <div class="fg"><label class="fl">Unidade</label><input type="text" id="m-unidade-${i}" class="fi" value="${m.unidade}"></div>
+      </div>
+    </div>`).join('');
+  openModal('modal-metas');
+}
+function saveMetas(){
+  const ud=getUserData();
+  const metas=ud.metas[editingMetasTipo]||[];
+  metas.forEach((m,i)=>{
+    ud.metas[editingMetasTipo][i].label=document.getElementById(`m-label-${i}`)?.value||m.label;
+    ud.metas[editingMetasTipo][i].meta=parseInt(document.getElementById(`m-meta-${i}`)?.value)||m.meta;
+    ud.metas[editingMetasTipo][i].unidade=document.getElementById(`m-unidade-${i}`)?.value||m.unidade;
+  });
+  saveUserData(ud); refreshAll(); closeModal('modal-metas'); toast('Metas atualizadas!');
+}
+
+function openAddComp(){
+  document.getElementById('c-nome').value='';
+  document.getElementById('c-data').value='';
+  document.getElementById('c-local').value='';
+  document.getElementById('c-cat').value='';
+  document.getElementById('c-status').value='planejado';
+  document.getElementById('c-resultado').value='';
+  document.getElementById('c-resultado-wrap').style.display='none';
+  document.getElementById('c-status').onchange=function(){
+    document.getElementById('c-resultado-wrap').style.display=this.value==='finalizado'?'block':'none';
+  };
+  openModal('modal-comp');
+}
+function saveComp(){
+  const nome=document.getElementById('c-nome').value.trim();
+  const data=document.getElementById('c-data').value;
+  if(!nome||!data){ toast('Nome e data são obrigatórios.','error'); return }
+  const ud=getUserData();
+  ud.competicoes=ud.competicoes||[];
+  ud.competicoes.push({
+    id:'c'+Date.now(), nome, data,
+    local:document.getElementById('c-local').value.trim(),
+    cat:document.getElementById('c-cat').value.trim(),
+    status:document.getElementById('c-status').value,
+    resultado:document.getElementById('c-status').value==='finalizado'?document.getElementById('c-resultado').value:''
+  });
+  saveUserData(ud); refreshAll(); closeModal('modal-comp'); toast('Competição adicionada!');
+}
+function removeComp(id){
+  const ud=getUserData();
+  ud.competicoes=(ud.competicoes||[]).filter(c=>c.id!==id);
+  saveUserData(ud); refreshAll(); toast('Competição removida.');
+}
+
+function confirmClearData(){
+  if(confirm('Tem certeza? Todos os treinos e dados serão apagados permanentemente.')){
+    const ud=defaultUserData();
+    ud.profile=getUserData().profile;
+    saveUserData(ud); refreshAll(); toast('Dados apagados.','error');
+  }
+}
+
+/* ══════════════════════════════════
+   INIT
+══════════════════════════════════ */
+document.getElementById('reg-data').value=today();
+updateIntColor(5);
+checkSession();
+</script>
+</body>
+</html>
+
