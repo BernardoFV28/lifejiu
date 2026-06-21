@@ -101,6 +101,10 @@ input,select,textarea{font-family:var(--font-b)}
 :root[data-theme="light"] body::before{opacity:.015}
 :root[data-theme="light"] .auth-logo-mark,
 :root[data-theme="light"] .logo-mark{box-shadow:0 0 24px rgba(215,38,56,.25)}
+@media (max-width: 1024px){
+  .stats-row{grid-template-columns:repeat(2,1fr)}
+  .g2{grid-template-columns:1fr 1fr}
+}
 @media (max-width: 760px){
   .sidebar{
     width:100%;height:64px;position:fixed;bottom:0;left:0;top:auto;
@@ -110,15 +114,36 @@ input,select,textarea{font-family:var(--font-b)}
   }
   .logo-mark{display:none}
   .nav-bottom{margin-top:0;display:flex}
-  .nav-item{width:42px;height:42px}
+  .nav-item{width:42px;height:42px;flex-shrink:0}
   .nav-item .tip{display:none}
-  .main{margin-left:0;padding-bottom:70px}
+  .main{margin-left:0;padding-bottom:74px}
   .screen{padding:16px 14px}
   .topbar{flex-wrap:wrap;gap:10px}
   .topbar-left h1{font-size:21px}
   .g2,.g2e,.g3,.stats-row{grid-template-columns:1fr !important}
-  .modal{padding:18px;max-height:85vh}
+  .modal{padding:18px;max-height:88vh;border-radius:16px}
   .fr{flex-direction:column}
+  table{font-size:11.5px}
+  .score-in{width:44px !important;padding:5px 4px !important}
+  .card{padding:16px}
+  .perf-grid{grid-template-columns:1fr 1fr !important}
+}
+@media (max-width: 480px){
+  .auth-wrap{padding:0 14px}
+  .topbar-left h1{font-size:19px}
+  .topbar-left p{font-size:12px}
+  .card-title{font-size:13.5px;flex-wrap:wrap;gap:6px}
+  .stat-value{font-size:26px}
+  table{font-size:10.5px}
+  table th:nth-child(1), table td:nth-child(1){padding-right:2px}
+  .score-in{width:38px !important;padding:5px 3px !important;font-size:12px !important}
+  .nav-item{width:38px;height:38px}
+  .modal h2{font-size:16px}
+  .perf-grid{grid-template-columns:1fr !important}
+  .rank-item{flex-wrap:wrap}
+}
+@media (hover:none){
+  .stat-card:hover,.card:hover{transform:none}
 }
 .app{display:flex;min-height:100vh;position:relative;z-index:1}
 .app.hidden{display:none}
@@ -167,12 +192,25 @@ input,select,textarea{font-family:var(--font-b)}
   cursor:pointer;border:2px solid var(--border2);transition:border-color .2s;
 }
 .avatar:hover{border-color:var(--red)}
-.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;transition:border-color .2s}
-.card:hover{border-color:var(--border2)}
+.card{
+  background:linear-gradient(155deg,var(--card) 0%,var(--bg2) 100%);
+  border:1px solid var(--border);border-radius:var(--radius);padding:20px;
+  transition:border-color .25s,box-shadow .25s,transform .25s;
+  position:relative;isolation:isolate;
+  box-shadow:0 1px 0 rgba(255,255,255,.03) inset, 0 12px 28px -18px rgba(0,0,0,.65);
+}
+.card::before{
+  content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:radial-gradient(circle at 18% -10%, rgba(255,255,255,.05), transparent 55%);
+  z-index:1;
+}
+.card:hover{border-color:var(--border2);box-shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 18px 34px -16px rgba(215,38,56,.18)}
 .card-title{
   font-family:var(--font-d);font-size:15px;font-weight:600;letter-spacing:.4px;
   margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;color:#fff;
+  position:relative;z-index:2;
 }
+.card-title ~ *{position:relative;z-index:2}
 .card-badge{font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;font-family:var(--font-b);text-transform:uppercase;letter-spacing:.6px}
 .badge-red{background:var(--red-dim);color:var(--red);border:1px solid var(--border2)}
 .badge-gold{background:var(--gold-dim);color:var(--gold)}
@@ -180,11 +218,13 @@ input,select,textarea{font-family:var(--font-b)}
 .badge-white{background:rgba(255,255,255,.07);color:rgba(255,255,255,.65)}
 .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
 .stat-card{
-  background:var(--card);border:1px solid var(--border);
+  background:linear-gradient(155deg,var(--card) 0%,var(--bg2) 100%);
+  border:1px solid var(--border);
   border-radius:var(--radius);padding:16px 18px;
-  position:relative;overflow:hidden;transition:all .2s;cursor:pointer;
+  position:relative;overflow:hidden;transition:all .25s;cursor:pointer;
+  box-shadow:0 1px 0 rgba(255,255,255,.03) inset, 0 10px 22px -16px rgba(0,0,0,.6);
 }
-.stat-card:hover{border-color:var(--border2);transform:translateY(-1px);box-shadow:0 4px 20px rgba(215,38,56,.12)}
+.stat-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 16px 30px -14px rgba(215,38,56,.2)}
 .stat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;border-radius:0 0 var(--radius) var(--radius)}
 .stat-card.red::after{background:var(--red)}
 .stat-card.gold::after{background:var(--gold)}
@@ -237,6 +277,13 @@ input,select,textarea{font-family:var(--font-b)}
 .fg{margin-bottom:13px}
 .fl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px;display:block;font-weight:600}
 .fi{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:14px;outline:none;transition:border-color .2s}
+.score-in{width:54px !important;padding:7px 6px !important;text-align:center;font-size:13px !important;margin:0 auto}
+.period-filter{display:flex;gap:6px;margin-bottom:14px}
+.pf-btn{background:var(--card2);border:1px solid var(--border);color:var(--muted);font-size:11.5px;font-weight:600;padding:6px 13px;border-radius:20px;cursor:pointer;transition:.2s;font-family:var(--font-b)}
+.pf-btn:hover{border-color:var(--border2);color:var(--text)}
+.pf-btn.active{background:var(--red-dim);border-color:var(--red);color:var(--red)}
+.mp-node{cursor:pointer;transition:opacity .15s}
+.mp-node:hover{opacity:.85}
 .fi:focus{border-color:var(--red)}
 .fi::placeholder{color:var(--muted2)}
 select.fi{appearance:none;cursor:pointer}
@@ -379,7 +426,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
   <nav class="sidebar">
     <div class="logo-mark" onclick="showScreen('dashboard')">LJ</div>
     <div class="nav-item active" onclick="showScreen('dashboard')"><i class="ti ti-layout-dashboard"></i><span class="tip">Dashboard</span></div>
-    <div class="nav-item" onclick="showScreen('registro')"><i class="ti ti-plus-circle"></i><span class="tip">Registrar Treino</span></div>
+    <div class="nav-item" onclick="showScreen('registro')"><i class="ti ti-plus-circle">RT</i><span class="tip">Registrar Treino</span></div>
     <div class="nav-item" onclick="showScreen('rendimento')"><i class="ti ti-chart-infographic"></i><span class="tip">Rendimento</span></div>
     <div class="nav-item" onclick="showScreen('evolucao')"><i class="ti ti-trophy"></i><span class="tip">Evolução</span></div>
     <div class="nav-item" onclick="showScreen('fisico')"><i class="ti ti-heartbeat"></i><span class="tip">Controle Físico</span></div>
@@ -510,7 +557,56 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
         </div>
       </div>
       <div class="card" style="margin-bottom:14px">
-        <div class="card-title">Estatísticas do Sparring</div>
+        <div class="card-title">Pontuação Oficial de BJJ <span class="card-badge badge-gold"> IBJJF</span></div>
+        <table style="width:100%;border-collapse:collapse;font-size:12.5px">
+          <thead>
+            <tr style="color:var(--muted);text-align:left">
+              <th style="padding:5px 4px;font-weight:500">Posição</th>
+              <th style="text-align:center;font-weight:500">Eu fiz</th>
+              <th style="text-align:center;font-weight:500">Sofri</th>
+              <th style="text-align:center;font-weight:500;width:46px">Pts</th>
+            </tr>
+          </thead>
+          <tbody id="bjj-score-table">
+            <tr data-pts="2">
+              <td style="padding:7px 4px">Queda</td>
+              <td style="text-align:center"><input type="number" id="r-quedas" class="fi score-in" min="0" max="99" value="0" oninput="updateSaldoPreview()"></td>
+              <td style="text-align:center"><input type="number" id="r-quedas-sf" class="fi score-in" min="0" max="99" value="0" oninput="updateSaldoPreview()"></td>
+              <td style="text-align:center;color:var(--muted)">2</td>
+            </tr>
+            <tr data-pts="3">
+              <td style="padding:7px 4px">Passagem de guarda</td>
+              <td style="text-align:center"><input type="number" id="r-guard" class="fi score-in" min="0" max="99" value="0" oninput="updateSaldoPreview()"></td>
+              <td style="text-align:center"><input type="number" id="r-guard-sf" class="fi score-in" min="0" max="99" value="0" oninput="updateSaldoPreview()"></td>
+              <td style="text-align:center;color:var(--muted)">3</td>
+            </tr>
+            <tr data-pts="2">
+              <td style="padding:7px 4px">Raspagem</td>
+              <td style="text-align:center"><input type="number" id="r-rasp" class="fi score-in" min="0" max="99" value="0" oninput="updateSaldoPreview()"></td>
+              <td style="text-align:center"><input type="number" id="r-rasp-sf" class="fi score-in" min="0" max="99" value="0" oninput="updateSaldoPreview()"></td>
+              <td style="text-align:center;color:var(--muted)">2</td>
+            </tr>
+            <tr data-pts="4">
+              <td style="padding:7px 4px">Montada</td>
+              <td style="text-align:center"><input type="number" id="r-montada" class="fi score-in" min="0" max="99" value="0" oninput="updateSaldoPreview()"></td>
+              <td style="text-align:center"><input type="number" id="r-montada-sf" class="fi score-in" min="0" max="99" value="0" oninput="updateSaldoPreview()"></td>
+              <td style="text-align:center;color:var(--muted)">4</td>
+            </tr>
+            <tr data-pts="4">
+              <td style="padding:7px 4px">Pegada de costas</td>
+              <td style="text-align:center"><input type="number" id="r-costas" class="fi score-in" min="0" max="99" value="0" oninput="updateSaldoPreview()"></td>
+              <td style="text-align:center"><input type="number" id="r-costas-sf" class="fi score-in" min="0" max="99" value="0" oninput="updateSaldoPreview()"></td>
+              <td style="text-align:center;color:var(--muted)">4</td>
+            </tr>
+          </tbody>
+        </table>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+          <span style="font-size:12px;color:var(--muted)">Saldo de pontos (feitos − sofridos)</span>
+          <span id="r-saldo-preview" style="font-weight:700;font-size:17px;color:var(--teal)">0</span>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-title">Finalizações & Defesa</div>
         <div class="perf-grid">
           <div class="perf-item">
             <div><div class="perf-num" style="color:var(--teal)"><input type="number" id="r-fin-ap" min="0" max="99" value="0" style="color:var(--teal)"></div><div class="perf-lbl">Finalizações aplicadas</div></div>
@@ -519,17 +615,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
           <div class="perf-item">
             <div><div class="perf-num" style="color:var(--red)"><input type="number" id="r-fin-sf" min="0" max="99" value="0" style="color:var(--red)"></div><div class="perf-lbl">Finalizações sofridas</div></div>
             <i class="ti ti-x" style="color:var(--red);font-size:18px;margin-left:auto"></i>
-          </div>
-          <div class="perf-item">
-            <div><div class="perf-num" style="color:rgba(255,255,255,.65)"><input type="number" id="r-guard" min="0" max="99" value="0" style="color:rgba(255,255,255,.65)"></div><div class="perf-lbl">Passagens de guarda</div></div>
-            <i class="ti ti-arrows-right-left" style="color:rgba(255,255,255,.4);font-size:18px;margin-left:auto"></i>
-          </div>
-          <div class="perf-item">
-            <div><div class="perf-num" style="color:var(--gold)"><input type="number" id="r-rasp" min="0" max="99" value="0" style="color:var(--gold)"></div><div class="perf-lbl">Raspagens</div></div>
-            <i class="ti ti-refresh" style="color:var(--gold);font-size:18px;margin-left:auto"></i>
-          </div>
-          <div class="perf-item">
-            <div><div class="perf-num" style="color:var(--muted)"><input type="number" id="r-quedas" min="0" max="99" value="0" style="color:var(--muted)"></div><div class="perf-lbl">Quedas aplicadas</div></div>
           </div>
           <div class="perf-item">
             <div><div class="perf-num" style="color:var(--teal)"><input type="number" id="r-def" min="0" max="99" value="0" style="color:var(--teal)"></div><div class="perf-lbl">Defesas bem-sucedidas</div></div>
@@ -552,13 +637,26 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
         <div class="stat-card white"><div class="stat-label">Passagens de guarda</div><div class="stat-value" id="r-total-guard">0</div><div class="stat-sub wh">Total acumulado</div></div>
         <div class="stat-card gold"><div class="stat-label">Raspagens</div><div class="stat-value" id="r-total-rasp">0</div><div class="stat-sub gold">Total acumulado</div></div>
       </div>
+      <div class="card" style="margin-bottom:12px;border-color:rgba(215,38,56,.3)">
+        <div class="card-title">
+          <span><i class="ti ti-map-2" style="color:var(--red);margin-right:8px"></i>Mapa de Posições</span>
+          <span class="card-badge badge-red">dados reais do sparring</span>
+        </div>
+        <p style="font-size:11px;color:var(--muted);margin:0 0 10px">Calculado a partir da Pontuação Oficial de BJJ que você registra em cada treino. Verde = você domina essa posição. Vermelho = você está perdendo pontos ali. <strong>Clique em uma posição</strong> para ver sua evolução no tempo.</p>
+        <div class="period-filter" id="periodo-filtro">
+          <button class="pf-btn active" data-dias="30" onclick="setPeriodo(30)">30 dias</button>
+          <button class="pf-btn" data-dias="90" onclick="setPeriodo(90)">90 dias</button>
+          <button class="pf-btn" data-dias="0" onclick="setPeriodo(0)">Tudo</button>
+        </div>
+        <div id="mapa-posicoes" style="width:100%"></div>
+      </div>
       <div class="g2">
         <div class="card">
           <div class="card-title">Finalizações por tipo <span class="card-badge badge-teal">acumulado</span></div>
           <div class="chart-wrap" style="height:170px"><canvas id="subChart"></canvas></div>
         </div>
         <div class="card">
-          <div class="card-title">Eficiência por posição <button class="btn-sm" onclick="openEditPos()" style="font-size:10px;padding:4px 9px"><i class="ti ti-edit" style="font-size:12px"></i> Editar</button></div>
+          <div class="card-title">Autoavaliação por posição <button class="btn-sm" onclick="openEditPos()" style="font-size:10px;padding:4px 9px"><i class="ti ti-edit" style="font-size:12px"></i> Editar</button></div>
           <div class="pos-grid" id="pos-grid"></div>
         </div>
       </div>
@@ -849,13 +947,38 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
       <div class="fg"><label class="fl">Finalizações aplicadas</label><input type="number" id="et-finap" class="fi" min="0"></div>
       <div class="fg"><label class="fl">Finalizações sofridas</label><input type="number" id="et-finsf" class="fi" min="0"></div>
     </div>
+    <p class="fl" style="margin:10px 0 4px;color:var(--gold)">Pontuação oficial (eu fiz / sofri)</p>
+    <div class="fr">
+      <div class="fg"><label class="fl">Quedas</label><input type="number" id="et-quedas" class="fi" min="0"></div>
+      <div class="fg"><label class="fl">Quedas sofridas</label><input type="number" id="et-quedas-sf" class="fi" min="0"></div>
+    </div>
     <div class="fr">
       <div class="fg"><label class="fl">Passagens de guarda</label><input type="number" id="et-guard" class="fi" min="0"></div>
+      <div class="fg"><label class="fl">Sofridas</label><input type="number" id="et-guard-sf" class="fi" min="0"></div>
+    </div>
+    <div class="fr">
       <div class="fg"><label class="fl">Raspagens</label><input type="number" id="et-rasp" class="fi" min="0"></div>
+      <div class="fg"><label class="fl">Sofridas</label><input type="number" id="et-rasp-sf" class="fi" min="0"></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label class="fl">Montadas</label><input type="number" id="et-montada" class="fi" min="0"></div>
+      <div class="fg"><label class="fl">Sofridas</label><input type="number" id="et-montada-sf" class="fi" min="0"></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label class="fl">Pegadas de costas</label><input type="number" id="et-costas" class="fi" min="0"></div>
+      <div class="fg"><label class="fl">Sofridas</label><input type="number" id="et-costas-sf" class="fi" min="0"></div>
     </div>
     <div class="fg"><label class="fl">Parceiro</label><input type="text" id="et-parceiro" class="fi"></div>
     <div class="fg"><label class="fl">Observações</label><textarea id="et-obs" class="fi"></textarea></div>
     <button class="btn-primary" onclick="saveEditTreino()">Salvar alterações</button>
+  </div>
+</div>
+
+<div class="modal-bg hidden" id="modal-pos-detalhe">
+  <div class="modal">
+    <h2 id="pd-titulo">Posição <button class="modal-close" onclick="closeModal('modal-pos-detalhe')"><i class="ti ti-x"></i></button></h2>
+    <div id="pd-resumo" style="display:flex;gap:14px;margin-bottom:14px;font-size:12px;color:var(--muted)"></div>
+    <div class="chart-wrap" style="height:200px"><canvas id="pdChart"></canvas></div>
   </div>
 </div>
 
@@ -1173,6 +1296,27 @@ function updateIntColor(v){
   document.getElementById('intRange').style.background=`linear-gradient(90deg,var(--red) ${pct}%,var(--card2) ${pct}%)`;
   el.style.color=v<=3?'rgba(255,255,255,.5)':v<=6?'var(--gold)':'var(--red)';
 }
+function gv(id){ return parseInt(document.getElementById(id).value)||0 }
+function calcSaldoBJJ(s){
+  return 2*((s.quedas||0)-(s.quedasSf||0))
+       + 3*((s.guard||0)-(s.guardSf||0))
+       + 2*((s.rasp||0)-(s.raspSf||0))
+       + 4*((s.montada||0)-(s.montadaSf||0))
+       + 4*((s.costas||0)-(s.costasSf||0));
+}
+function updateSaldoPreview(){
+  const s={
+    quedas:gv('r-quedas'), quedasSf:gv('r-quedas-sf'),
+    guard:gv('r-guard'), guardSf:gv('r-guard-sf'),
+    rasp:gv('r-rasp'), raspSf:gv('r-rasp-sf'),
+    montada:gv('r-montada'), montadaSf:gv('r-montada-sf'),
+    costas:gv('r-costas'), costasSf:gv('r-costas-sf'),
+  };
+  const saldo=calcSaldoBJJ(s);
+  const el=document.getElementById('r-saldo-preview');
+  el.textContent=(saldo>0?'+':'')+saldo;
+  el.style.color=saldo>0?'var(--teal)':saldo<0?'var(--red)':'var(--muted)';
+}
 function saveTraining(){
   const data=document.getElementById('reg-data').value||today();
   const inicio=document.getElementById('reg-inicio').value;
@@ -1181,27 +1325,134 @@ function saveTraining(){
   const parceiro=document.getElementById('reg-parceiro').value.trim();
   const obs=document.getElementById('reg-obs').value.trim();
   const stats={
-    finAp:parseInt(document.getElementById('r-fin-ap').value)||0,
-    finSf:parseInt(document.getElementById('r-fin-sf').value)||0,
-    guard:parseInt(document.getElementById('r-guard').value)||0,
-    rasp:parseInt(document.getElementById('r-rasp').value)||0,
-    quedas:parseInt(document.getElementById('r-quedas').value)||0,
-    def:parseInt(document.getElementById('r-def').value)||0,
+    finAp:gv('r-fin-ap'), finSf:gv('r-fin-sf'), def:gv('r-def'),
+    quedas:gv('r-quedas'), quedasSf:gv('r-quedas-sf'),
+    guard:gv('r-guard'), guardSf:gv('r-guard-sf'),
+    rasp:gv('r-rasp'), raspSf:gv('r-rasp-sf'),
+    montada:gv('r-montada'), montadaSf:gv('r-montada-sf'),
+    costas:gv('r-costas'), costasSf:gv('r-costas-sf'),
   };
-  const xpGain=50+(stats.finAp*15);
+  stats.saldoBJJ=calcSaldoBJJ(stats);
+  const xpGain=50+(stats.finAp*15)+Math.max(0,stats.saldoBJJ)*2;
   const ud=getUserData();
   const treino={id:Date.now(),data,inicio,fim,tipo:selectedType,intensidade,parceiro,obs,stats};
   ud.treinos.push(treino);
   ud.xp=(ud.xp||0)+xpGain;
   ud.lastTrainDate=data;
   saveUserData(ud);
-  ['r-fin-ap','r-fin-sf','r-guard','r-rasp','r-quedas','r-def'].forEach(id=>document.getElementById(id).value=0);
+  ['r-fin-ap','r-fin-sf','r-guard','r-guard-sf','r-rasp','r-rasp-sf','r-quedas','r-quedas-sf','r-montada','r-montada-sf','r-costas','r-costas-sf','r-def'].forEach(id=>document.getElementById(id).value=0);
   document.getElementById('reg-parceiro').value='';
   document.getElementById('reg-obs').value='';
+  updateSaldoPreview();
   refreshAll();
   toast(`Treino salvo! +${xpGain} XP 🥋`);
   showScreen('dashboard');
 }
+let mapaPeriodoDias = 30;
+function setPeriodo(dias){
+  mapaPeriodoDias = dias;
+  document.querySelectorAll('#periodo-filtro .pf-btn').forEach(b=>b.classList.toggle('active', parseInt(b.dataset.dias,10)===dias));
+  renderRendimento(getUserData());
+}
+function filterByPeriodo(treinos){
+  if(!mapaPeriodoDias) return treinos;
+  const limite=new Date(); limite.setDate(limite.getDate()-mapaPeriodoDias);
+  return (treinos||[]).filter(t=>new Date(t.data)>=limite);
+}
+const POSICOES_DEFS=[
+  {nome:'Queda',ap:'quedas',sf:'quedasSf',pts:2,path:'M12 3v12m0 0l-5-5m5 5l5-5M5 19h14'},
+  {nome:'Passagem',ap:'guard',sf:'guardSf',pts:3,path:'M4 12h16m0 0l-5-5m5 5l-5 5'},
+  {nome:'Raspagem',ap:'rasp',sf:'raspSf',pts:2,path:'M4 12a8 8 0 1 1 8 8M4 12l4-4M4 12l4 4'},
+  {nome:'Montada',ap:'montada',sf:'montadaSf',pts:4,path:'M5 21V9a7 7 0 0 1 14 0v12M5 21h14'},
+  {nome:'Costas',ap:'costas',sf:'costasSf',pts:4,path:'M6 4h8a4 4 0 0 1 4 4v12H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z'},
+];
+function corPorRatio(ratio){
+  if(ratio===null) return {base:'rgba(255,255,255,.3)',id:'neutro'};
+  if(ratio>=0.65) return {base:'var(--teal)',id:'teal'};
+  if(ratio>=0.45) return {base:'var(--gold)',id:'gold'};
+  return {base:'var(--red)',id:'red'};
+}
+function renderMapaPosicoes(ud, treinosFiltrados){
+  const t=treinosFiltrados || filterByPeriodo(ud.treinos||[]);
+  const agg=(ap,sf)=>t.reduce((acc,x)=>{acc.a+=(x.stats?.[ap]||0);acc.s+=(x.stats?.[sf]||0);return acc},{a:0,s:0});
+  const defs=POSICOES_DEFS;
+  const posicoes=defs.map(p=>{
+    const {a,s}=agg(p.ap,p.sf);
+    const total=a+s;
+    const ratio=total>0?a/total:null;
+    return {...p,a,s,total,ratio,cor:corPorRatio(ratio)};
+  });
+  const totalSaldo=t.reduce((acc,x)=>acc+(x.stats?.saldoBJJ ?? calcSaldoBJJ(x.stats||{})),0);
+  const saldoCor = totalSaldo>0?'var(--teal)':totalSaldo<0?'var(--red)':'rgba(255,255,255,.4)';
+  const saldoId = totalSaldo>0?'teal':totalSaldo<0?'red':'neutro';
+
+  const S=620, CX=S/2, CY=S/2-6, R=205, NODE_R=64;
+  const N=posicoes.length;
+  const angleFor=i=>-90+ (360/N)*i;
+  const toXY=(ang,radius)=>{
+    const rad=ang*Math.PI/180;
+    return [CX+radius*Math.cos(rad), CY+radius*Math.sin(rad)];
+  };
+
+  // grid de fundo (anéis radar)
+  let grid='';
+  [0.42,0.68,0.94].forEach(f=>{
+    grid+=`<circle cx="${CX}" cy="${CY}" r="${R*f+NODE_R*0.0}" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="1"/>`;
+  });
+  for(let i=0;i<N;i++){
+    const [x,y]=toXY(angleFor(i),R);
+    grid+=`<line x1="${CX}" y1="${CY}" x2="${x}" y2="${y}" stroke="rgba(255,255,255,.06)" stroke-width="1"/>`;
+  }
+
+  let gradDefs='';
+  let nodes='';
+  posicoes.forEach((p,i)=>{
+    const ang=angleFor(i);
+    const [x,y]=toXY(ang,R);
+    const gid='mpGrad'+i;
+    gradDefs+=`
+      <radialGradient id="${gid}" cx="35%" cy="30%" r="75%">
+        <stop offset="0%" style="stop-color:${p.cor.base};stop-opacity:.55"/>
+        <stop offset="100%" style="stop-color:${p.cor.base};stop-opacity:.06"/>
+      </radialGradient>`;
+    const pctTxt = p.ratio===null ? '—' : Math.round(p.ratio*100)+'%';
+    const labelY = y > CY ? y+NODE_R+22 : y-NODE_R-30;
+    nodes+=`
+      <g class="mp-node" onclick="abrirDetalhePosicao('${p.ap}','${p.sf}','${p.nome}',${p.pts})" style="filter:drop-shadow(0 0 ${p.total>0?'10px':'0px'} ${p.cor.base})">
+        <circle cx="${x}" cy="${y}" r="${NODE_R}" fill="url(#${gid})" stroke="${p.cor.base}" stroke-width="1.6" stroke-opacity="${p.total>0?0.85:0.35}"/>
+        <circle cx="${x}" cy="${y}" r="${NODE_R+8}" fill="transparent"/>
+        <circle cx="${x}" cy="${y}" r="${NODE_R-7}" fill="none" stroke="${p.cor.base}" stroke-width="1" stroke-opacity=".18"/>
+        <g transform="translate(${x-11},${y-29}) scale(0.92)"><path d="${p.path}" fill="none" stroke="${p.total>0?p.cor.base:'rgba(255,255,255,.35)'}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></g>
+        <text x="${x}" y="${y+13}" text-anchor="middle" fill="${p.total>0?'var(--text)':'rgba(255,255,255,.4)'}" font-size="21" font-weight="800" font-family="var(--font-d)">${pctTxt}</text>
+        <text x="${x}" y="${y+28}" text-anchor="middle" fill="var(--muted)" font-size="9.5">${p.pts} pts</text>
+        <text x="${x}" y="${labelY}" text-anchor="middle" fill="var(--text)" font-size="13" font-weight="700" font-family="var(--font-d)">${p.nome}</text>
+        <text x="${x}" y="${labelY+14}" text-anchor="middle" fill="var(--muted)" font-size="9.5">${p.total>0?`${p.a} feitos · ${p.s} sofridos`:'sem dados'}</text>
+      </g>`;
+  });
+
+  const hubR=72;
+  gradDefs+=`
+    <radialGradient id="mpHub" cx="38%" cy="30%" r="75%">
+      <stop offset="0%" style="stop-color:${saldoCor};stop-opacity:.5"/>
+      <stop offset="100%" style="stop-color:${saldoCor};stop-opacity:.08"/>
+    </radialGradient>`;
+  const hub=`
+    <g style="filter:drop-shadow(0 0 16px ${saldoCor})">
+      <circle cx="${CX}" cy="${CY}" r="${hubR}" fill="url(#mpHub)" stroke="${saldoCor}" stroke-width="1.8"/>
+      <circle cx="${CX}" cy="${CY}" r="${hubR-9}" fill="none" stroke="${saldoCor}" stroke-width="1" stroke-opacity=".25"/>
+      <text x="${CX}" y="${CY-6}" text-anchor="middle" fill="var(--muted)" font-size="9.5" letter-spacing="1px">SALDO TOTAL</text>
+      <text x="${CX}" y="${CY+22}" text-anchor="middle" fill="${saldoCor}" font-size="28" font-weight="800" font-family="var(--font-d)">${totalSaldo>0?'+':''}${totalSaldo}</text>
+    </g>`;
+
+  const svg=`<svg viewBox="0 0 ${S} ${S-10}" style="width:100%;max-width:560px;height:auto;display:block;margin:0 auto">
+    <defs>${gradDefs}</defs>
+    ${grid}
+    ${hub}
+    ${nodes}
+  </svg>`;
+  document.getElementById('mapa-posicoes').innerHTML = svg;
+}
+
 function renderRendimento(ud){
   const t=ud.treinos||[];
   const totFin=t.reduce((a,x)=>a+(x.stats.finAp||0),0);
@@ -1212,6 +1463,7 @@ function renderRendimento(ud){
   document.getElementById('r-total-sf').textContent=totSf;
   document.getElementById('r-total-guard').textContent=totG;
   document.getElementById('r-total-rasp').textContent=totR;
+  renderMapaPosicoes(ud);
   const rate=totFin+totSf>0?Math.round(totFin/(totFin+totSf)*100):0;
   document.getElementById('r-taxa').textContent=rate>0?`Taxa: ${rate}% de sucesso`:'—';
   const pg=document.getElementById('pos-grid');
@@ -1762,12 +2014,16 @@ function exportCSV(){
   const ud=getUserData();
   const treinos=ud.treinos||[];
   if(!treinos.length){ toast('Nenhum treino para exportar.','error'); return }
-  const cols=['data','tipo','duracaoMin','intensidade','finAp','finSf','observacoes'];
+  const cols=['data','tipo','duracaoMin','intensidade','finAp','finSf','quedas','quedasSf','guard','guardSf','rasp','raspSf','montada','montadaSf','costas','costasSf','saldoBJJ','observacoes'];
   const rows=[cols.join(',')];
   treinos.forEach(t=>{
+    const s=t.stats||{};
     rows.push([
       t.data, t.tipo, t.duracaoMin||'', t.intensidade||'',
-      t.stats?.finAp||0, t.stats?.finSf||0,
+      s.finAp||0, s.finSf||0,
+      s.quedas||0, s.quedasSf||0, s.guard||0, s.guardSf||0,
+      s.rasp||0, s.raspSf||0, s.montada||0, s.montadaSf||0, s.costas||0, s.costasSf||0,
+      s.saldoBJJ ?? calcSaldoBJJ(s),
       `"${(t.obs||'').replace(/"/g,'""')}"`
     ].join(','));
   });
@@ -1794,15 +2050,19 @@ function renderTreinosList(ud){
   const wrap=document.getElementById('treinos-list');
   if(!t.length){ wrap.innerHTML=`<div style="text-align:center;padding:18px;color:var(--muted);font-size:13px">Nenhum treino registrado ainda.</div>`; return }
   const tiposLabel={tecnica:'Técnica',sparring:'Sparring',competicao:'Competição',fisico:'Prep. Física'};
-  wrap.innerHTML=t.map(tr=>`
+  wrap.innerHTML=t.map(tr=>{
+    const saldo=tr.stats?.saldoBJJ ?? calcSaldoBJJ(tr.stats||{});
+    const saldoCor=saldo>0?'var(--teal)':saldo<0?'var(--red)':'var(--muted)';
+    return `
     <div style="display:flex;align-items:center;gap:12px;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 12px">
       <div style="flex:1">
         <div style="font-size:13px;font-weight:600">${new Date(tr.data+'T12:00').toLocaleDateString('pt-BR')} · ${tiposLabel[tr.tipo]||tr.tipo}</div>
-        <div style="font-size:11px;color:var(--muted)">Intensidade ${tr.intensidade}/10 · Fin. ${tr.stats?.finAp||0} aplicadas / ${tr.stats?.finSf||0} sofridas${tr.parceiro?' · com '+tr.parceiro:''}</div>
+        <div style="font-size:11px;color:var(--muted)">Intensidade ${tr.intensidade}/10 · Fin. ${tr.stats?.finAp||0}/${tr.stats?.finSf||0} · Saldo BJJ <span style="color:${saldoCor};font-weight:600">${saldo>0?'+':''}${saldo}</span>${tr.parceiro?' · com '+tr.parceiro:''}</div>
       </div>
       <button class="btn-sm" style="padding:6px 9px" onclick="openEditTreino(${tr.id})"><i class="ti ti-edit" style="font-size:13px"></i></button>
       <button class="btn-sm" style="padding:6px 9px;border-color:var(--border2);color:var(--red)" onclick="deleteTreino(${tr.id})"><i class="ti ti-trash" style="font-size:13px"></i></button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 let editingTreinoId=null;
 function openEditTreino(id){
@@ -1810,17 +2070,27 @@ function openEditTreino(id){
   const tr=(ud.treinos||[]).find(t=>t.id===id);
   if(!tr) return;
   editingTreinoId=id;
+  const s=tr.stats||{};
   document.getElementById('et-data').value=tr.data;
   document.getElementById('et-tipo').value=tr.tipo;
   document.getElementById('et-intensidade').value=tr.intensidade;
-  document.getElementById('et-finap').value=tr.stats?.finAp||0;
-  document.getElementById('et-finsf').value=tr.stats?.finSf||0;
-  document.getElementById('et-guard').value=tr.stats?.guard||0;
-  document.getElementById('et-rasp').value=tr.stats?.rasp||0;
+  document.getElementById('et-finap').value=s.finAp||0;
+  document.getElementById('et-finsf').value=s.finSf||0;
+  document.getElementById('et-quedas').value=s.quedas||0;
+  document.getElementById('et-quedas-sf').value=s.quedasSf||0;
+  document.getElementById('et-guard').value=s.guard||0;
+  document.getElementById('et-guard-sf').value=s.guardSf||0;
+  document.getElementById('et-rasp').value=s.rasp||0;
+  document.getElementById('et-rasp-sf').value=s.raspSf||0;
+  document.getElementById('et-montada').value=s.montada||0;
+  document.getElementById('et-montada-sf').value=s.montadaSf||0;
+  document.getElementById('et-costas').value=s.costas||0;
+  document.getElementById('et-costas-sf').value=s.costasSf||0;
   document.getElementById('et-parceiro').value=tr.parceiro||'';
   document.getElementById('et-obs').value=tr.obs||'';
   openModal('modal-treino');
 }
+function evv(id){ return parseInt(document.getElementById(id).value)||0 }
 function saveEditTreino(){
   const ud=getUserData();
   const tr=(ud.treinos||[]).find(t=>t.id===editingTreinoId);
@@ -1829,10 +2099,19 @@ function saveEditTreino(){
   tr.tipo=document.getElementById('et-tipo').value;
   tr.intensidade=parseInt(document.getElementById('et-intensidade').value)||tr.intensidade;
   tr.stats=tr.stats||{};
-  tr.stats.finAp=parseInt(document.getElementById('et-finap').value)||0;
-  tr.stats.finSf=parseInt(document.getElementById('et-finsf').value)||0;
-  tr.stats.guard=parseInt(document.getElementById('et-guard').value)||0;
-  tr.stats.rasp=parseInt(document.getElementById('et-rasp').value)||0;
+  tr.stats.finAp=evv('et-finap');
+  tr.stats.finSf=evv('et-finsf');
+  tr.stats.quedas=evv('et-quedas');
+  tr.stats.quedasSf=evv('et-quedas-sf');
+  tr.stats.guard=evv('et-guard');
+  tr.stats.guardSf=evv('et-guard-sf');
+  tr.stats.rasp=evv('et-rasp');
+  tr.stats.raspSf=evv('et-rasp-sf');
+  tr.stats.montada=evv('et-montada');
+  tr.stats.montadaSf=evv('et-montada-sf');
+  tr.stats.costas=evv('et-costas');
+  tr.stats.costasSf=evv('et-costas-sf');
+  tr.stats.saldoBJJ=calcSaldoBJJ(tr.stats);
   tr.parceiro=document.getElementById('et-parceiro').value.trim();
   tr.obs=document.getElementById('et-obs').value.trim();
   saveUserData(ud); refreshAll(); closeModal('modal-treino'); toast('Treino atualizado!');
@@ -1868,9 +2147,11 @@ let loadingPromise = null;
 function buildIaPrompt(){
   const ud = window.getUserData();
   const t = ud.treinos||[];
-  const resumoTreinos = t.slice(-20).map(tr=>
-    `- ${tr.data} | tipo: ${tr.tipo} | intensidade: ${tr.intensidade}/10 | fin. aplicadas: ${tr.stats?.finAp||0} | fin. sofridas: ${tr.stats?.finSf||0} | passagens de guarda: ${tr.stats?.guard||0} | raspagens: ${tr.stats?.rasp||0}`
-  ).join('\n');
+  const resumoTreinos = t.slice(-20).map(tr=>{
+    const s=tr.stats||{};
+    const saldo=s.saldoBJJ ?? window.calcSaldoBJJ?.(s) ?? 0;
+    return `- ${tr.data} | tipo: ${tr.tipo} | intensidade: ${tr.intensidade}/10 | fin: ${s.finAp||0}/${s.finSf||0} | quedas: ${s.quedas||0}/${s.quedasSf||0} | passagens: ${s.guard||0}/${s.guardSf||0} | raspagens: ${s.rasp||0}/${s.raspSf||0} | montadas: ${s.montada||0}/${s.montadaSf||0} | costas: ${s.costas||0}/${s.costasSf||0} | saldo de pontos: ${saldo}`;
+  }).join('\n');
   return `Você é um treinador de Jiu-Jitsu analisando os dados de um aluno chamado ${ud.profile.nome||'Atleta'}, faixa ${ud.profile.faixa}, com ${ud.profile.anos||0} anos de prática.
 
 Treinos recentes:
