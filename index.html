@@ -777,7 +777,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
     </div>
     <div class="screen" id="screen-social">
       <div class="topbar">
-        <div class="topbar-left"><h1>Social & Ranking</h1><p>Atletas cadastrados neste dispositivo</p></div>
+        <div class="topbar-left"><h1>Social & Ranking</h1><p>Atletas cadastrados neste dispositivo · os dados ficam salvos só neste navegador, não são sincronizados entre aparelhos</p></div>
         <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)">
           <input type="checkbox" id="rank-filter-academia" onchange="renderSocial(getUserData())">
           Só da minha academia
@@ -982,8 +982,32 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
   </div>
 </div>
 
+<div class="modal-bg hidden" id="modal-confirm">
+  <div class="modal" style="max-width:380px">
+    <h2 id="confirm-title" style="font-size:17px">Confirmar ação</h2>
+    <p id="confirm-msg" style="font-size:13px;color:var(--muted);line-height:1.5;margin:6px 0 18px"></p>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn-sm" style="padding:9px 16px" onclick="closeModal('modal-confirm')">Cancelar</button>
+      <button class="btn-sm" id="confirm-ok-btn" style="padding:9px 16px;background:var(--red);color:#fff;border-color:var(--red)">Confirmar</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"><i class="ti ti-check-circle" id="toast-icon"></i> <span id="toast-msg">Salvo!</span></div>
 <script>
+let __confirmCb=null;
+function confirmAction(msg, onConfirm, title){
+  document.getElementById('confirm-title').textContent=title||'Confirmar ação';
+  document.getElementById('confirm-msg').textContent=msg;
+  __confirmCb=onConfirm;
+  openModal('modal-confirm');
+}
+document.getElementById('confirm-ok-btn').addEventListener('click',()=>{
+  closeModal('modal-confirm');
+  const cb=__confirmCb; __confirmCb=null;
+  if(cb) cb();
+});
+
 const STORE = {
   get:(k)=>{try{return JSON.parse(localStorage.getItem('lj_'+k))}catch{return null}},
   set:(k,v)=>localStorage.setItem('lj_'+k, JSON.stringify(v)),
@@ -1153,7 +1177,7 @@ const ACHIEVEMENTS=[
   {id:'comp1', icon:'ti-medal', label:'1ª competição', check:d=>(d.competicoes||[]).length>=1},
   {id:'gold1', icon:'ti-award', label:'1 medalha ouro', check:d=>(d.competicoes||[]).some(c=>c.resultado==='ouro')},
   {id:'lv5', icon:'ti-crown', label:'Nível 5', check:d=>calcXPLevel(d.xp||0).lv>=5},
-  {id:'allpos', icon:'ti-shield', label:'Defensor', check:d=>d.treinos.reduce((a,t)=>a+(t.stats.def||0),0)>=20},
+  {id:'allpos', icon:'ti-shield', label:'Defensor', check:d=>d.treinos.length>=10 && d.treinos.reduce((a,t)=>a+(t.stats.quedasSf||0)+(t.stats.guardSf||0)+(t.stats.raspSf||0)+(t.stats.montadaSf||0)+(t.stats.costasSf||0),0)<=10},
 ];
 function totalMinutes(treinos){
   return (treinos||[]).reduce((a,t)=>{
@@ -1473,37 +1497,38 @@ function renderRendimento(ud){
       <div class="pos-bar"><div class="pos-fill" style="width:${p.pct}%;background:${p.color}"></div></div>
       <div class="pos-stat" style="color:${p.color}">${p.pct}%</div>
     </div>`).join('');
-  const finTypes={'Armlock':0,'Triângulo':0,'Choke':0,'Kimura':0,'RNC':0,'Outro':0};
+  const catLabels=['Finalização','Queda','Passagem','Raspagem','Montada','Costas'];
+  const catApl=[totFin,t.reduce((a,x)=>a+(x.stats.quedas||0),0),totG,totR,t.reduce((a,x)=>a+(x.stats.montada||0),0),t.reduce((a,x)=>a+(x.stats.costas||0),0)];
+  const catSof=[totSf,t.reduce((a,x)=>a+(x.stats.quedasSf||0),0),t.reduce((a,x)=>a+(x.stats.guardSf||0),0),t.reduce((a,x)=>a+(x.stats.raspSf||0),0),t.reduce((a,x)=>a+(x.stats.montadaSf||0),0),t.reduce((a,x)=>a+(x.stats.costasSf||0),0)];
   if(charts.sub) charts.sub.destroy();
   charts.sub=new Chart(document.getElementById('subChart'),{
     type:'bar',
     data:{
-      labels:Object.keys(finTypes),
-      datasets:[{
-        data:[totFin>0?Math.round(totFin*.33):0,totFin>0?Math.round(totFin*.24):0,totFin>0?Math.round(totFin*.21):0,totFin>0?Math.round(totFin*.12):0,totFin>0?Math.round(totFin*.07):0,totFin>0?totFin-Math.round(totFin*.97):0],
-        backgroundColor:['var(--red)','rgba(215,38,56,.65)','rgba(215,38,56,.45)','rgba(215,38,56,.3)','rgba(215,38,56,.18)','rgba(215,38,56,.1)'],
-        borderRadius:6,borderSkipped:false
-      }]
+      labels:catLabels,
+      datasets:[
+        {label:'Aplicadas',data:catApl,backgroundColor:'var(--red)',borderRadius:6,borderSkipped:false},
+        {label:'Sofridas',data:catSof,backgroundColor:'rgba(215,38,56,.25)',borderRadius:6,borderSkipped:false}
+      ]
     },
-    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'rgba(245,239,239,.6)',font:{size:11}}}},scales:{
       x:{grid:{color:'rgba(215,38,56,.05)'},ticks:{color:'rgba(245,239,239,.4)',font:{size:11}}},
       y:{grid:{display:false},ticks:{color:'rgba(245,239,239,.6)',font:{size:11}}}
     }}
   });
-  const months=[];const finByMonth=[];const defByMonth=[];
+  const months=[];const finApByMonth=[];const finSfByMonth=[];
   for(let i=5;i>=0;i--){
     const d=new Date(); d.setMonth(d.getMonth()-i);
     months.push(d.toLocaleDateString('pt-BR',{month:'short'}));
     const mt=t.filter(x=>{const xd=new Date(x.data);return xd.getMonth()===d.getMonth()&&xd.getFullYear()===d.getFullYear()});
-    finByMonth.push(mt.reduce((a,x)=>a+(x.stats.finAp||0),0));
-    defByMonth.push(mt.reduce((a,x)=>a+(x.stats.def||0),0));
+    finApByMonth.push(mt.reduce((a,x)=>a+(x.stats.finAp||0),0));
+    finSfByMonth.push(mt.reduce((a,x)=>a+(x.stats.finSf||0),0));
   }
   if(charts.evol) charts.evol.destroy();
   charts.evol=new Chart(document.getElementById('evolChart'),{
     type:'line',
     data:{labels:months,datasets:[
-      {label:'Finalizações',data:finByMonth,borderColor:'var(--red)',backgroundColor:'rgba(215,38,56,.08)',fill:true,tension:.4,pointBackgroundColor:'var(--red)',pointRadius:4,pointHoverRadius:6},
-      {label:'Defesas',data:defByMonth,borderColor:'var(--teal)',backgroundColor:'rgba(31,200,180,.07)',fill:true,tension:.4,pointBackgroundColor:'var(--teal)',pointRadius:4,pointHoverRadius:6}
+      {label:'Finalizações aplicadas',data:finApByMonth,borderColor:'var(--red)',backgroundColor:'rgba(215,38,56,.08)',fill:true,tension:.4,pointBackgroundColor:'var(--red)',pointRadius:4,pointHoverRadius:6},
+      {label:'Finalizações sofridas',data:finSfByMonth,borderColor:'var(--teal)',backgroundColor:'rgba(31,200,180,.07)',fill:true,tension:.4,pointBackgroundColor:'var(--teal)',pointRadius:4,pointHoverRadius:6}
     ]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'rgba(245,239,239,.6)',font:{size:11}}}},scales:{
       x:{grid:{color:'rgba(215,38,56,.05)'},ticks:{color:'rgba(245,239,239,.4)',font:{size:11}}},
@@ -1950,9 +1975,11 @@ function saveComp(){
   saveUserData(ud); refreshAll(); closeModal('modal-comp'); toast('Competição adicionada!');
 }
 function removeComp(id){
-  const ud=getUserData();
-  ud.competicoes=(ud.competicoes||[]).filter(c=>c.id!==id);
-  saveUserData(ud); refreshAll(); toast('Competição removida.');
+  confirmAction('Remover esta competição do seu histórico?',()=>{
+    const ud=getUserData();
+    ud.competicoes=(ud.competicoes||[]).filter(c=>c.id!==id);
+    saveUserData(ud); refreshAll(); toast('Competição removida.');
+  },'Remover competição');
 }
 function toggleTheme(light){
   document.documentElement.setAttribute('data-theme', light?'light':'dark');
@@ -2037,8 +2064,9 @@ function importJSON(ev){
     try{
       const data=JSON.parse(reader.result);
       if(!data.profile){ toast('Arquivo inválido.','error'); return }
-      if(!confirm('Isso vai sobrescrever todos os seus dados atuais com o backup importado. Continuar?')) return;
-      saveUserData(data); refreshAll(); toast('Backup importado com sucesso!');
+      confirmAction('Isso vai sobrescrever todos os seus dados atuais com o backup importado. Continuar?',()=>{
+        saveUserData(data); refreshAll(); toast('Backup importado com sucesso!');
+      },'Importar backup');
     }catch(e){ toast('Erro ao ler o arquivo.','error'); }
   };
   reader.readAsText(file);
@@ -2117,18 +2145,19 @@ function saveEditTreino(){
   saveUserData(ud); refreshAll(); closeModal('modal-treino'); toast('Treino atualizado!');
 }
 function deleteTreino(id){
-  if(!confirm('Excluir este treino? Essa ação não pode ser desfeita.')) return;
-  const ud=getUserData();
-  ud.treinos=(ud.treinos||[]).filter(t=>t.id!==id);
-  saveUserData(ud); refreshAll(); toast('Treino excluído.','error');
+  confirmAction('Excluir este treino? Essa ação não pode ser desfeita.',()=>{
+    const ud=getUserData();
+    ud.treinos=(ud.treinos||[]).filter(t=>t.id!==id);
+    saveUserData(ud); refreshAll(); toast('Treino excluído.','error');
+  },'Excluir treino');
 }
 
 function confirmClearData(){
-  if(confirm('Tem certeza? Todos os treinos e dados serão apagados permanentemente.')){
+  confirmAction('Tem certeza? Todos os treinos e dados serão apagados permanentemente.',()=>{
     const ud=defaultUserData();
     ud.profile=getUserData().profile;
     saveUserData(ud); refreshAll(); toast('Dados apagados.','error');
-  }
+  },'Apagar todos os dados');
 }
 document.getElementById('reg-data').value=today();
 updateIntColor(5);
