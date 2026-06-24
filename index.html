@@ -947,6 +947,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;heigh
       <div class="fg"><label class="fl">Finalizações aplicadas</label><input type="number" id="et-finap" class="fi" min="0"></div>
       <div class="fg"><label class="fl">Finalizações sofridas</label><input type="number" id="et-finsf" class="fi" min="0"></div>
     </div>
+    <div class="fg"><label class="fl">Defesas bem-sucedidas</label><input type="number" id="et-def" class="fi" min="0"></div>
     <p class="fl" style="margin:10px 0 4px;color:var(--gold)">Pontuação oficial (eu fiz / sofri)</p>
     <div class="fr">
       <div class="fg"><label class="fl">Quedas</label><input type="number" id="et-quedas" class="fi" min="0"></div>
@@ -1139,8 +1140,15 @@ function showScreen(name){
   if(name==='fisico') renderFisico(getUserData());
 }
 function initials(name){ return name.split(' ').map(w=>w[0]||'').slice(0,2).join('').toUpperCase()||'?' }
+function escapeHtml(str){
+  return String(str==null?'':str).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 function formatH(mins){ const h=Math.floor(mins/60),m=mins%60; return h>0?(m>0?`${h}h ${m}m`:`${h}h`):`${m}m` }
-function today(){ return new Date().toISOString().split('T')[0] }
+function today(){
+  const d=new Date();
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
 function monthName(){ return new Date().toLocaleDateString('pt-BR',{month:'long',year:'numeric'}) }
 function weekLabel(){ const d=new Date(); return `Semana ${Math.ceil(d.getDate()/7)} · ${d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}` }
 function calcXPLevel(xp){
@@ -1177,7 +1185,7 @@ const ACHIEVEMENTS=[
   {id:'comp1', icon:'ti-medal', label:'1ª competição', check:d=>(d.competicoes||[]).length>=1},
   {id:'gold1', icon:'ti-award', label:'1 medalha ouro', check:d=>(d.competicoes||[]).some(c=>c.resultado==='ouro')},
   {id:'lv5', icon:'ti-crown', label:'Nível 5', check:d=>calcXPLevel(d.xp||0).lv>=5},
-  {id:'allpos', icon:'ti-shield', label:'Defensor', check:d=>d.treinos.length>=10 && d.treinos.reduce((a,t)=>a+(t.stats.quedasSf||0)+(t.stats.guardSf||0)+(t.stats.raspSf||0)+(t.stats.montadaSf||0)+(t.stats.costasSf||0),0)<=10},
+  {id:'allpos', icon:'ti-shield', label:'Defensor', check:d=>d.treinos.reduce((a,t)=>a+(t.stats.def||0),0)>=20},
 ];
 function totalMinutes(treinos){
   return (treinos||[]).reduce((a,t)=>{
@@ -1515,20 +1523,20 @@ function renderRendimento(ud){
       y:{grid:{display:false},ticks:{color:'rgba(245,239,239,.6)',font:{size:11}}}
     }}
   });
-  const months=[];const finApByMonth=[];const finSfByMonth=[];
+  const months=[];const finApByMonth=[];const defByMonth=[];
   for(let i=5;i>=0;i--){
     const d=new Date(); d.setMonth(d.getMonth()-i);
     months.push(d.toLocaleDateString('pt-BR',{month:'short'}));
     const mt=t.filter(x=>{const xd=new Date(x.data);return xd.getMonth()===d.getMonth()&&xd.getFullYear()===d.getFullYear()});
     finApByMonth.push(mt.reduce((a,x)=>a+(x.stats.finAp||0),0));
-    finSfByMonth.push(mt.reduce((a,x)=>a+(x.stats.finSf||0),0));
+    defByMonth.push(mt.reduce((a,x)=>a+(x.stats.def||0),0));
   }
   if(charts.evol) charts.evol.destroy();
   charts.evol=new Chart(document.getElementById('evolChart'),{
     type:'line',
     data:{labels:months,datasets:[
       {label:'Finalizações aplicadas',data:finApByMonth,borderColor:'var(--red)',backgroundColor:'rgba(215,38,56,.08)',fill:true,tension:.4,pointBackgroundColor:'var(--red)',pointRadius:4,pointHoverRadius:6},
-      {label:'Finalizações sofridas',data:finSfByMonth,borderColor:'var(--teal)',backgroundColor:'rgba(31,200,180,.07)',fill:true,tension:.4,pointBackgroundColor:'var(--teal)',pointRadius:4,pointHoverRadius:6}
+      {label:'Defesas bem-sucedidas',data:defByMonth,borderColor:'var(--teal)',backgroundColor:'rgba(31,200,180,.07)',fill:true,tension:.4,pointBackgroundColor:'var(--teal)',pointRadius:4,pointHoverRadius:6}
     ]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'rgba(245,239,239,.6)',font:{size:11}}}},scales:{
       x:{grid:{color:'rgba(215,38,56,.05)'},ticks:{color:'rgba(245,239,239,.4)',font:{size:11}}},
@@ -1754,7 +1762,7 @@ function renderSocial(ud){
     <div class="rank-item ${e.email===CU?'me':''}">
       <div class="rank-pos" style="color:${i<3?'var(--gold)':'var(--muted)'}">${medalhas[i]||(i+1)}</div>
       <div class="rank-av" style="background:linear-gradient(135deg,var(--red),var(--red-deep))">${initials(e.nome)}</div>
-      <div class="rank-name" style="font-weight:${e.email===CU?700:500}">${e.nome}${e.email===CU?' (você)':''} <span class="rank-belt" style="color:rgba(245,239,239,.6)">Faixa ${e.faixa}${e.academia?' · '+e.academia:''}</span></div>
+      <div class="rank-name" style="font-weight:${e.email===CU?700:500}">${escapeHtml(e.nome)}${e.email===CU?' (você)':''} <span class="rank-belt" style="color:rgba(245,239,239,.6)">Faixa ${escapeHtml(e.faixa)}${e.academia?' · '+escapeHtml(e.academia):''}</span></div>
       <div class="rank-xp">${e.xp} xp</div>
     </div>`).join('') : `<div style="padding:12px 14px;text-align:center;font-size:12px;color:var(--muted)">Nenhum atleta encontrado com esse filtro.</div>`;
   if(entries.length<=1){
@@ -2085,7 +2093,7 @@ function renderTreinosList(ud){
     <div style="display:flex;align-items:center;gap:12px;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 12px">
       <div style="flex:1">
         <div style="font-size:13px;font-weight:600">${new Date(tr.data+'T12:00').toLocaleDateString('pt-BR')} · ${tiposLabel[tr.tipo]||tr.tipo}</div>
-        <div style="font-size:11px;color:var(--muted)">Intensidade ${tr.intensidade}/10 · Fin. ${tr.stats?.finAp||0}/${tr.stats?.finSf||0} · Saldo BJJ <span style="color:${saldoCor};font-weight:600">${saldo>0?'+':''}${saldo}</span>${tr.parceiro?' · com '+tr.parceiro:''}</div>
+        <div style="font-size:11px;color:var(--muted)">Intensidade ${tr.intensidade}/10 · Fin. ${tr.stats?.finAp||0}/${tr.stats?.finSf||0} · Saldo BJJ <span style="color:${saldoCor};font-weight:600">${saldo>0?'+':''}${saldo}</span>${tr.parceiro?' · com '+escapeHtml(tr.parceiro):''}</div>
       </div>
       <button class="btn-sm" style="padding:6px 9px" onclick="openEditTreino(${tr.id})"><i class="ti ti-edit" style="font-size:13px"></i></button>
       <button class="btn-sm" style="padding:6px 9px;border-color:var(--border2);color:var(--red)" onclick="deleteTreino(${tr.id})"><i class="ti ti-trash" style="font-size:13px"></i></button>
@@ -2104,6 +2112,7 @@ function openEditTreino(id){
   document.getElementById('et-intensidade').value=tr.intensidade;
   document.getElementById('et-finap').value=s.finAp||0;
   document.getElementById('et-finsf').value=s.finSf||0;
+  document.getElementById('et-def').value=s.def||0;
   document.getElementById('et-quedas').value=s.quedas||0;
   document.getElementById('et-quedas-sf').value=s.quedasSf||0;
   document.getElementById('et-guard').value=s.guard||0;
@@ -2129,6 +2138,7 @@ function saveEditTreino(){
   tr.stats=tr.stats||{};
   tr.stats.finAp=evv('et-finap');
   tr.stats.finSf=evv('et-finsf');
+  tr.stats.def=evv('et-def');
   tr.stats.quedas=evv('et-quedas');
   tr.stats.quedasSf=evv('et-quedas-sf');
   tr.stats.guard=evv('et-guard');
