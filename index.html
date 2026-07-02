@@ -11,7 +11,7 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  /* --- Paleta principal --- */
+  
   --red:#D72638;--red-deep:#A81D29;--red-bright:#FF3347;
   --red-dim:rgba(215,38,56,.12);--red-glow:rgba(215,38,56,.25);
   --teal:#1FC8B4;--teal-dim:rgba(31,200,180,.1);
@@ -21,16 +21,16 @@
   --border:rgba(215,38,56,.14);--border2:rgba(215,38,56,.28);
   --text:#F5EFEF;--muted:rgba(245,239,239,.45);--muted2:rgba(245,239,239,.2);
 
-  /* --- Sistema de espaçamento (escala 4px) --- */
+  
   --sp-1:4px;--sp-2:8px;--sp-3:12px;--sp-4:16px;--sp-5:20px;--sp-6:24px;--sp-7:32px;--sp-8:40px;
 
-  /* --- Raios --- */
+  
   --sidebar:72px;--radius-lg:20px;--radius:16px;--radius-sm:10px;--radius-xs:7px;
 
-  /* --- Tipografia --- */
+  
   --font-d:'Oswald',sans-serif;--font-b:'DM Sans',sans-serif;
 
-  /* --- Elevação (sombras em camadas, consistentes) --- */
+  
   --ease:cubic-bezier(.22,1,.36,1);
   --ease-snap:cubic-bezier(.34,1.56,.64,1);
   --shadow-1:0 1px 0 rgba(255,255,255,.03) inset, 0 2px 8px -4px rgba(0,0,0,.5);
@@ -64,7 +64,7 @@ body::after{
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
 input,select,textarea{font-family:var(--font-b)}
 
-/* Foco visível e consistente para acessibilidade, sem poluir o visual padrão */
+
 a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,
 textarea:focus-visible,[tabindex]:focus-visible{
   outline:none;box-shadow:var(--focus-ring);border-radius:8px;
@@ -72,7 +72,7 @@ textarea:focus-visible,[tabindex]:focus-visible{
 
 h1,h2,h3{font-family:var(--font-d);letter-spacing:.3px}
 
-/* ============ AUTH SCREEN ============ */
+
 #auth-screen{
   position:fixed;inset:0;z-index:9999;
   display:flex;align-items:center;justify-content:center;
@@ -150,7 +150,7 @@ h1,h2,h3{font-family:var(--font-d);letter-spacing:.3px}
 }
 .auth-error.show{display:block}
 
-/* ============ TOGGLE SWITCH ============ */
+
 .switch{position:relative;display:inline-block;width:42px;height:24px;flex-shrink:0}
 .switch input{opacity:0;width:0;height:0}
 .switch .slider{
@@ -168,7 +168,7 @@ h1,h2,h3{font-family:var(--font-d);letter-spacing:.3px}
 .switch input:checked+.slider::before{transform:translateX(18px);background:var(--red)}
 .switch input:focus-visible+.slider{box-shadow:var(--focus-ring)}
 
-/* ============ TEMA CLARO ============ */
+
 :root[data-theme="light"]{
   --bg:#F7F3F1;--bg2:#FFFFFF;--bg3:#FBF7F6;
   --card:#FFFFFF;--card2:#F3ECEA;
@@ -188,7 +188,7 @@ h1,h2,h3{font-family:var(--font-d);letter-spacing:.3px}
 :root[data-theme="light"] .ai-text strong{color:var(--text)}
 :root[data-theme="light"] .card-title{color:var(--text)}
 
-/* ============ RESPONSIVO ============ */
+
 @media (max-width: 1024px){
   .stats-row{grid-template-columns:repeat(2,1fr)}
   .g2{grid-template-columns:1fr 1fr}
@@ -237,7 +237,7 @@ h1,h2,h3{font-family:var(--font-d);letter-spacing:.3px}
   *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important}
 }
 
-/* ============ APP SHELL ============ */
+
 .app{display:flex;min-height:100vh;position:relative;z-index:1}
 .app.hidden{display:none}
 .sidebar{
@@ -299,7 +299,7 @@ h1,h2,h3{font-family:var(--font-d);letter-spacing:.3px}
 }
 .avatar:hover{border-color:var(--red);box-shadow:0 4px 14px var(--red-glow);transform:translateY(-1px)}
 
-/* ============ CARDS ============ */
+
 .card{
   background:linear-gradient(155deg,var(--card) 0%,var(--bg2) 100%);
   border:1px solid var(--border);border-radius:var(--radius);padding:20px;
@@ -325,7 +325,7 @@ h1,h2,h3{font-family:var(--font-d);letter-spacing:.3px}
 .badge-teal{background:var(--teal-dim);color:var(--teal)}
 .badge-white{background:rgba(255,255,255,.07);color:rgba(255,255,255,.65)}
 
-/* ============ STATS ============ */
+
 .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
 .stat-card{
   background:linear-gradient(155deg,var(--card) 0%,var(--bg2) 100%);
@@ -396,7 +396,7 @@ h1,h2,h3{font-family:var(--font-d);letter-spacing:.3px}
 .pos-fill{height:100%;border-radius:99px;transition:width .8s var(--ease)}
 .pos-stat{font-family:var(--font-d);font-size:19px;font-weight:700}
 
-/* ============ FORMS ============ */
+
 .fg{margin-bottom:13px}
 .fl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px;display:block;font-weight:600}
 .fi{
@@ -463,7 +463,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.1)}
 .perf-lbl{font-size:11px;color:var(--muted);margin-top:1px}
 .perf-num input[type=number]{background:none;border:none;color:inherit;font-family:var(--font-d);font-size:22px;font-weight:700;width:52px;outline:none}
 
-/* ============ BUTTONS ============ */
+
 .btn-primary{
   width:100%;padding:14px;background:linear-gradient(155deg,var(--red-bright),var(--red));border:none;
   border-radius:11px;color:#fff;font-family:var(--font-d);font-size:16px;font-weight:600;letter-spacing:.8px;
@@ -530,7 +530,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.1)}
 
 .chart-wrap{position:relative;width:100%}
 
-/* ============ MODAL ============ */
+
 .modal-bg{
   position:fixed;inset:0;background:rgba(8,4,4,.72);backdrop-filter:blur(6px);
   z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px;
@@ -547,7 +547,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.1)}
 .modal-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;padding:2px;border-radius:6px;transition:color .15s var(--ease),background .15s var(--ease)}
 .modal-close:hover{color:var(--text);background:var(--card2)}
 
-/* ============ TOAST ============ */
+
 .toast{
   position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--bg3);border:1px solid var(--border2);
   border-radius:11px;padding:12px 16px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:10px;
@@ -578,7 +578,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.1)}
 }
 .profile-av-big:hover{box-shadow:0 8px 26px rgba(0,0,0,.4), 0 0 42px rgba(215,38,56,.5), inset 0 1px 0 rgba(255,255,255,.25);transform:translateY(-1px)}
 
-/* ============ TABELAS ============ */
+
 table{border-collapse:collapse;width:100%}
 thead th{
   font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);
@@ -589,18 +589,15 @@ tbody tr{transition:background .15s var(--ease)}
 tbody tr:hover{background:var(--card2)}
 tbody tr:last-child td{border-bottom:none}
 
-/* ============ SKELETON / LOADING ============ */
+
 .skeleton{
   background:linear-gradient(90deg,var(--card2) 25%,var(--border) 50%,var(--card2) 75%);
   background-size:200% 100%;animation:shimmer 1.4s ease-in-out infinite;border-radius:8px;
 }
 
-/* ============================================================
-   CAMADA DE POLIMENTO — refinamentos extras de acabamento
-   (texturas, profundidade, entrada animada, microcópias visuais)
-   ============================================================ */
 
-/* --- Entrada escalonada dos cards ao trocar de tela --- */
+
+
 .screen.active .card,
 .screen.active .stat-card,
 .screen.active .comp-card,
@@ -617,7 +614,7 @@ tbody tr:last-child td{border-bottom:none}
 .screen.active .g3 > *:nth-child(2),
 .screen.active .g3 > *:nth-child(3){animation-delay:.05s}
 
-/* --- Sidebar: vidro sutil + leve textura, em vez de cor chapada --- */
+
 .sidebar{
   background:
     linear-gradient(180deg, rgba(255,255,255,.025), transparent 18%),
@@ -627,21 +624,21 @@ tbody tr:last-child td{border-bottom:none}
 }
 :root[data-theme="light"] .sidebar{box-shadow:1px 0 0 rgba(255,255,255,.5) inset, 4px 0 18px -14px rgba(36,20,20,.15)}
 
-/* --- Tooltips da sidebar com "seta" e leve profundidade extra --- */
+
 .nav-item .tip::before{
   content:'';position:absolute;left:-4px;top:50%;transform:translateY(-50%);
   width:8px;height:8px;background:var(--bg3);border-left:1px solid var(--border2);border-bottom:1px solid var(--border2);
   transform:translateY(-50%) rotate(45deg);
 }
 
-/* --- Topbar: leve linha de separação com gradiente em vez de margem seca --- */
+
 .topbar{position:relative;padding-bottom:18px}
 .topbar::after{
   content:'';position:absolute;left:0;right:0;bottom:0;height:1px;
   background:linear-gradient(90deg, var(--border), transparent 70%);
 }
 
-/* --- Stat-cards: ícone fantasma de fundo + brilho direcional no hover --- */
+
 .stat-card{isolation:isolate}
 .stat-card::before{
   content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0;
@@ -653,10 +650,10 @@ tbody tr:last-child td{border-bottom:none}
 .stat-card.teal:hover{box-shadow:var(--shadow-3), 0 0 0 1px rgba(31,200,180,.18) inset, 0 16px 30px -14px rgba(31,200,180,.2)}
 .stat-card.gold:hover{box-shadow:var(--shadow-3), 0 0 0 1px rgba(244,185,66,.18) inset, 0 16px 30px -14px rgba(244,185,66,.2)}
 
-/* --- Badges com leve relevo, menos "achatados" --- */
+
 .card-badge{box-shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 2px 6px -3px rgba(0,0,0,.4)}
 
-/* --- Botões: brilho que percorre o botão primário no hover (sutil, sem ficar circo) --- */
+
 .btn-primary{position:relative;overflow:hidden}
 .btn-primary::after{
   content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 40%,rgba(255,255,255,.18) 50%,transparent 60%);
@@ -665,7 +662,7 @@ tbody tr:last-child td{border-bottom:none}
 }
 .btn-primary:hover::after{background-position:-20% 0}
 
-/* --- Avatar com anel rotativo sutil ao redor (mais "jogo", combina com gamificação) --- */
+
 .avatar,.profile-av-big{position:relative}
 .avatar::after,.profile-av-big::after{
   content:'';position:absolute;inset:-4px;border-radius:50%;z-index:-1;
@@ -674,7 +671,7 @@ tbody tr:last-child td{border-bottom:none}
 }
 .avatar:hover::after,.profile-av-big:hover::after{opacity:.55}
 
-/* --- Barra de progresso (lv-fill, prog-fill): brilho de "energia" se movendo --- */
+
 .lv-fill::after,.prog-fill::after{
   content:'';position:absolute;inset:0;
   background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);
@@ -683,49 +680,49 @@ tbody tr:last-child td{border-bottom:none}
 .lv-fill,.prog-fill{position:relative;overflow:hidden}
 @keyframes energyMove{from{background-position:-80px 0}to{background-position:220px 0}}
 
-/* --- Achievements desbloqueados: brilho pulsante sutil só quando recém desbloqueado --- */
+
 .ach.unlocked{position:relative}
 .ach.unlocked::after{
   content:'';position:absolute;inset:-1px;border-radius:inherit;pointer-events:none;
   box-shadow:0 0 0 0 rgba(215,38,56,.4);
 }
 
-/* --- Calendário: dia de hoje com leve respiro visual (halo) --- */
+
 .cal-day.today{position:relative}
 .cal-day.today::before{
   content:'';position:absolute;inset:-2px;border-radius:10px;border:1px solid rgba(244,185,66,.25);pointer-events:none;
 }
 
-/* --- Empty states (mensagens "nenhum dado ainda") com ícone fantasma centralizado --- */
+
 .card [style*="text-align:center"][style*="color:var(--muted)"]{
   position:relative;
 }
 
-/* --- Inputs com ícone (quando usados) e select customizado --- */
+
 select.fi{
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23ffffff66' stroke-width='1.6'%3E%3Cpath d='M5 7l5 5 5-5'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:right 12px center;background-size:14px;padding-right:34px;
 }
 
-/* --- Checkbox simples (rank-filter-academia, etc) com leve estilo customizado --- */
+
 input[type="checkbox"]:not(.switch input){
   width:15px;height:15px;accent-color:var(--red);cursor:pointer;
 }
 
-/* --- Modal: cabeçalho com leve separação e respiro --- */
+
 .modal h2{padding-bottom:14px;border-bottom:1px solid var(--border);margin-bottom:20px}
 
-/* --- Auth inputs: leve profundidade interna (inset) para parecer "encaixado" --- */
+
 .auth-input{box-shadow:inset 0 1px 3px rgba(0,0,0,.25)}
 :root[data-theme="light"] .auth-input{box-shadow:inset 0 1px 3px rgba(36,20,20,.06)}
 
-/* --- Hub central do mapa de posições (SVG): leve respiro de luz pulsante --- */
+
 .chart-wrap canvas{border-radius:var(--radius-sm)}
 
-/* --- Scrollbar dentro de modais um pouco mais discreta --- */
+
 .modal::-webkit-scrollbar{width:4px}
 
-/* --- Title do app: leve gradiente no texto dos h1 das telas, dá acabamento editorial --- */
+
 .topbar-left h1{
   background:linear-gradient(180deg, var(--text) 60%, rgba(245,239,239,.78));
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
@@ -735,6 +732,230 @@ input[type="checkbox"]:not(.switch input){
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
 }
 
+
+
+:root{
+  
+  --red-glow:rgba(168,29,41,.22);
+  --shadow-red:0 10px 26px -10px rgba(168,29,41,.4), 0 2px 8px -2px rgba(168,29,41,.25), inset 0 1px 0 rgba(255,255,255,.14);
+  --shadow-red-lg:0 18px 44px -14px rgba(168,29,41,.48), 0 0 30px -10px rgba(215,38,56,.35), inset 0 1px 0 rgba(255,255,255,.18);
+  --focus-ring:0 0 0 3px rgba(215,38,56,.28), 0 0 0 6px rgba(215,38,56,.08);
+
+  
+  --glass-fill:linear-gradient(160deg, rgba(255,255,255,.05), rgba(255,255,255,.015) 40%, rgba(0,0,0,.06) 100%);
+  --glass-edge:rgba(255,255,255,.09);
+  --card-blur:14px;
+
+  --ease-out:cubic-bezier(.16,1,.3,1);
+}
+:root[data-theme="light"]{
+  --red-glow:rgba(168,29,41,.14);
+  --glass-fill:linear-gradient(160deg, rgba(255,255,255,.65), rgba(255,255,255,.15) 45%, rgba(36,20,20,.03) 100%);
+  --glass-edge:rgba(36,20,20,.06);
+}
+
+
+body::after{
+  background:
+    radial-gradient(circle at 14% -4%, rgba(215,38,56,.055), transparent 42%),
+    radial-gradient(circle at 100% 8%, rgba(244,185,66,.03), transparent 40%),
+    radial-gradient(circle at 90% 100%, rgba(31,200,180,.035), transparent 48%),
+    radial-gradient(circle at 12% 0%, rgba(215,38,56,.06), transparent 45%),
+    radial-gradient(circle at 100% 100%, rgba(31,200,180,.04), transparent 50%);
+  transform:translate3d(calc(var(--px,0) * 1px), calc(var(--py,0) * 1px), 0);
+  transition:transform .6s var(--ease-out);
+  will-change:transform;
+}
+
+
+.auth-logo h1{letter-spacing:3px;text-shadow:0 2px 24px rgba(215,38,56,.25)}
+.topbar-left h1{font-size:27px;letter-spacing:.2px}
+.card-title{letter-spacing:.5px;font-size:14.5px}
+h1,h2,h3{line-height:1.15}
+body{letter-spacing:.1px}
+.stat-label,.fl,.auth-label{font-weight:700}
+
+
+.card,.comp-card,.phys-card{
+  background:var(--glass-fill), linear-gradient(155deg,var(--card) 0%,var(--bg2) 100%);
+  backdrop-filter:blur(var(--card-blur)) saturate(140%);
+  -webkit-backdrop-filter:blur(var(--card-blur)) saturate(140%);
+  border-color:var(--glass-edge);
+  box-shadow:var(--shadow-2), 0 0 0 1px rgba(0,0,0,.15);
+  transition:border-color .35s var(--ease-out),box-shadow .35s var(--ease-out),transform .35s var(--ease-out);
+}
+.card:hover,.comp-card:hover,.phys-card:hover{
+  transform:translateY(-2px);
+  box-shadow:var(--shadow-3), 0 22px 46px -20px rgba(168,29,41,.22), 0 0 0 1px var(--glass-edge);
+}
+@media (hover:none){ .card:hover,.comp-card:hover,.phys-card:hover{transform:none} }
+
+
+.card::after,.stat-card::after{content:'';position:absolute;inset:0 0 auto 0;height:1px;border-radius:var(--radius) var(--radius) 0 0;
+  background:linear-gradient(90deg,transparent, var(--glass-edge) 30%, var(--glass-edge) 70%, transparent);pointer-events:none;z-index:1}
+.stat-card::after{border-radius:var(--radius) var(--radius) 0 0;height:1px;bottom:auto}
+.stat-card::before{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;border-radius:0 0 var(--radius) var(--radius);transition:height .2s var(--ease)}
+
+
+.stats-row .stat-card{
+  background:var(--glass-fill), linear-gradient(155deg,var(--card) 0%,var(--bg2) 100%);
+  backdrop-filter:blur(var(--card-blur)) saturate(140%);
+  -webkit-backdrop-filter:blur(var(--card-blur)) saturate(140%);
+}
+.stat-card{overflow:hidden}
+.stat-card:hover{transform:translateY(-4px) scale(1.012)}
+.stat-value{letter-spacing:.4px;text-shadow:0 2px 18px rgba(0,0,0,.25)}
+.stat-card.red .stat-value{text-shadow:0 2px 20px rgba(168,29,41,.35)}
+
+
+.btn-primary{
+  background:linear-gradient(155deg,var(--red-bright) 0%,var(--red) 55%,var(--red-deep) 100%);
+  transition:box-shadow .3s var(--ease-out),transform .18s var(--ease-snap),filter .2s;
+}
+.btn-primary:hover{transform:translateY(-2px)}
+.btn-primary:active{transform:translateY(0) scale(.975)}
+.auth-submit{background:linear-gradient(155deg,var(--red-bright) 0%,var(--red) 55%,var(--red-deep) 100%)}
+
+.btn-sm,.btn-danger{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.btn-sm:hover,.btn-danger:hover{transform:translateY(-1px)}
+.btn-sm:active,.btn-danger:active{transform:translateY(0) scale(.96)}
+
+
+.sidebar{
+  background:var(--glass-fill), linear-gradient(180deg, rgba(255,255,255,.025), transparent 18%), var(--bg2);
+  backdrop-filter:blur(18px) saturate(150%);
+  -webkit-backdrop-filter:blur(18px) saturate(150%);
+  border-right-color:var(--glass-edge);
+}
+.nav-item{transition:background .25s var(--ease-out),color .25s var(--ease-out),box-shadow .25s var(--ease-out),transform .18s var(--ease-snap)}
+.nav-item:hover{transform:translateY(-2px) scale(1.04)}
+.nav-item.active{
+  background:linear-gradient(155deg, rgba(215,38,56,.16), rgba(215,38,56,.08));
+  box-shadow:inset 0 0 0 1px rgba(215,38,56,.32), 0 4px 18px -6px rgba(168,29,41,.5), 0 0 22px -8px rgba(215,38,56,.3);
+}
+.nav-item.active i{filter:drop-shadow(0 0 6px rgba(215,38,56,.5))}
+.logo-mark{background:linear-gradient(155deg,var(--red-bright) 0%,var(--red) 55%,var(--red-deep) 100%)}
+
+
+.avatar,.profile-av-big{background:linear-gradient(135deg,var(--red-bright),var(--red) 60%,var(--red-deep))}
+.avatar::after,.profile-av-big::after{filter:blur(4px);opacity:0}
+.avatar:hover::after,.profile-av-big:hover::after{opacity:.4}
+
+
+.modal{
+  background:var(--glass-fill), var(--bg3);
+  backdrop-filter:blur(20px) saturate(160%);
+  -webkit-backdrop-filter:blur(20px) saturate(160%);
+  box-shadow:0 40px 80px -24px rgba(0,0,0,.65), 0 0 0 1px var(--glass-edge) inset;
+}
+
+
+.rec-item,.rank-item,.ai-insight,.pos-card,.perf-item{
+  transition:border-color .25s var(--ease-out),transform .25s var(--ease-out),background .25s var(--ease-out),box-shadow .25s var(--ease-out);
+}
+.rec-item:hover,.rank-item:hover,.ai-insight:hover{box-shadow:0 8px 20px -12px rgba(0,0,0,.4)}
+
+
+@keyframes achGlow{0%,100%{box-shadow:0 4px 14px -6px rgba(215,38,56,.35)}50%{box-shadow:0 4px 20px -4px rgba(215,38,56,.5)}}
+.ach.unlocked{animation:achGlow 3.4s ease-in-out infinite}
+
+
+::-webkit-scrollbar-thumb{background:linear-gradient(var(--red-deep),var(--red))}
+
+
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,
+textarea:focus-visible,[tabindex]:focus-visible{box-shadow:var(--focus-ring)}
+
+
+.toast{
+  background:var(--glass-fill), var(--bg3);
+  backdrop-filter:blur(16px) saturate(150%);
+  -webkit-backdrop-filter:blur(16px) saturate(150%);
+  transition:transform .45s var(--ease-snap),opacity .3s var(--ease-out);
+}
+
+
+@media (prefers-reduced-motion: reduce){
+  body::after{transition:none}
+  .ach.unlocked{animation:none}
+}
+@media (max-width:760px){
+  .card,.comp-card,.phys-card,.stats-row .stat-card{backdrop-filter:blur(8px) saturate(130%);-webkit-backdrop-filter:blur(8px) saturate(130%)}
+}
+
+
+
+
+.duracao-chip{
+  display:inline-flex;align-items:center;gap:7px;margin-top:10px;
+  background:var(--teal-dim);border:1px solid rgba(31,200,180,.25);color:var(--teal);
+  font-size:12px;font-weight:600;padding:7px 12px;border-radius:20px;
+}
+.duracao-chip i{font-size:14px}
+
+
+.type-grid{grid-template-columns:repeat(2,1fr)}
+.type-btn{
+  flex-direction:row;align-items:center;gap:11px;padding:12px 11px;min-height:60px;
+}
+.type-btn i{
+  font-size:19px;width:34px;height:34px;flex-shrink:0;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.05);color:var(--muted);
+}
+.type-btn.active i{background:rgba(215,38,56,.18);color:var(--red);transform:scale(1.05)}
+.type-btn-txt{display:flex;flex-direction:column;gap:1px;text-align:left;min-width:0}
+.type-btn-txt strong{font-size:13px;font-weight:600;color:var(--text);font-family:var(--font-b)}
+.type-btn-txt span{font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.type-btn:not(.active) .type-btn-txt strong{color:var(--muted)}
+.type-btn:focus-visible{box-shadow:var(--focus-ring)}
+
+
+.stepper{display:inline-flex;align-items:center;justify-content:center;gap:5px}
+.stepper-btn{
+  width:24px;height:24px;border-radius:7px;flex-shrink:0;
+  background:var(--card2);border:1px solid var(--border);color:var(--muted);
+  display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;
+  }
+.stepper-btn:hover{background:var(--red-dim);color:var(--red);border-color:var(--red)}
+.stepper-btn:active{transform:scale(.88)}
+.stepper .score-in{width:38px !important;padding:6px 2px !important;text-align:center}
+.stepper-lg .stepper-btn{width:26px;height:26px}
+.stepper-lg input[type=number]{width:44px;text-align:center;font-family:var(--font-d);font-weight:700;background:none;border:none;outline:none}
+
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+@keyframes stepperBump{0%{transform:scale(1)}40%{transform:scale(1.06)}100%{transform:scale(1)}}
+.stepper.bump{animation:stepperBump .18s var(--ease-snap)}
+
+
+.reg-summary{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;
+}
+.reg-summary-item{
+  background:var(--glass-fill), var(--card2);
+  border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:11px 12px;text-align:center;
+}
+.reg-summary-lbl{
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:600;margin-bottom:5px;
+}
+.reg-summary-lbl i{font-size:12px}
+.reg-summary-item strong{font-family:var(--font-d);font-size:17px;font-weight:700;display:block}
+
+
+@keyframes savedPulse{
+  0%{box-shadow:var(--shadow-red), inset 0 1px 0 rgba(255,255,255,.15)}
+  35%{box-shadow:0 0 0 6px rgba(31,200,180,.18), var(--shadow-red-lg);transform:scale(1.015)}
+  100%{box-shadow:var(--shadow-red), inset 0 1px 0 rgba(255,255,255,.15);transform:scale(1)}
+}
+.btn-primary.saved-pulse{animation:savedPulse .55s var(--ease-out)}
+
+@media (max-width:480px){
+  .type-grid{grid-template-columns:1fr}
+  .reg-summary{grid-template-columns:1fr 1fr}
+  .reg-summary-item:last-child{grid-column:1 / -1}
+}
 </style>
 </head>
 <body>
@@ -917,21 +1138,34 @@ input[type="checkbox"]:not(.switch input){
           <div class="card-title">Informações Básicas</div>
           <div class="fg"><label class="fl">Data</label><input type="date" id="reg-data" class="fi"></div>
           <div class="fr">
-            <div class="fg"><label class="fl">Início</label><input type="time" id="reg-inicio" class="fi" value="19:00"></div>
-            <div class="fg"><label class="fl">Fim</label><input type="time" id="reg-fim" class="fi" value="20:30"></div>
+            <div class="fg"><label class="fl">Início</label><input type="time" id="reg-inicio" class="fi" value="19:00" oninput="updateDuracaoPreview()"></div>
+            <div class="fg"><label class="fl">Fim</label><input type="time" id="reg-fim" class="fi" value="20:30" oninput="updateDuracaoPreview()"></div>
           </div>
-          <div class="fg">
+          <div class="duracao-chip" id="reg-duracao-chip"><i class="ti ti-clock-hour-4"></i><span id="reg-duracao-txt">1h 30min de treino</span></div>
+          <div class="fg" style="margin-top:16px">
             <label class="fl">Tipo de treino</label>
             <div class="type-grid">
-              <div class="type-btn active" onclick="selectType(this,'tecnica')"><i class="ti ti-atom"></i>Técnica</div>
-              <div class="type-btn" onclick="selectType(this,'sparring')"><i class="ti ti-swords"></i>Sparring</div>
-              <div class="type-btn" onclick="selectType(this,'competicao')"><i class="ti ti-medal"></i>Competição</div>
-              <div class="type-btn" onclick="selectType(this,'fisico')"><i class="ti ti-run"></i>Prep. Física</div>
+              <div class="type-btn active" tabindex="0" role="button" aria-pressed="true" onclick="selectType(this,'tecnica')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}">
+                <i class="ti ti-atom"></i>
+                <div class="type-btn-txt"><strong>Técnica</strong><span>Drilling &amp; aprendizado</span></div>
+              </div>
+              <div class="type-btn" tabindex="0" role="button" aria-pressed="false" onclick="selectType(this,'sparring')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}">
+                <i class="ti ti-swords"></i>
+                <div class="type-btn-txt"><strong>Sparring</strong><span>Luta livre no tatame</span></div>
+              </div>
+              <div class="type-btn" tabindex="0" role="button" aria-pressed="false" onclick="selectType(this,'competicao')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}">
+                <i class="ti ti-medal"></i>
+                <div class="type-btn-txt"><strong>Competição</strong><span>Campeonato oficial</span></div>
+              </div>
+              <div class="type-btn" tabindex="0" role="button" aria-pressed="false" onclick="selectType(this,'fisico')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}">
+                <i class="ti ti-run"></i>
+                <div class="type-btn-txt"><strong>Prep. Física</strong><span>Condicionamento</span></div>
+              </div>
             </div>
           </div>
         </div>
         <div class="card">
-          <div class="card-title">Intensidade</div>
+          <div class="card-title">Intensidade <span class="card-badge" id="int-badge" style="background:var(--gold-dim);color:var(--gold)">Moderado</span></div>
           <div class="int-val" id="intVal">5</div>
           <input type="range" min="1" max="10" value="5" id="intRange" oninput="updateIntColor(this.value)">
           <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin:6px 0 14px">
@@ -955,38 +1189,78 @@ input[type="checkbox"]:not(.switch input){
               <th style="padding:5px 4px;font-weight:500">Posição</th>
               <th style="text-align:center;font-weight:500">Eu fiz</th>
               <th style="text-align:center;font-weight:500">Sofri</th>
-              <th style="text-align:center;font-weight:500;width:46px">Pts</th>
+              <th style="text-align:center;font-weight:500;width:40px">Pts</th>
             </tr>
           </thead>
           <tbody id="bjj-score-table">
             <tr data-pts="2">
               <td style="padding:7px 4px">Queda</td>
-              <td style="text-align:center"><input type="number" id="r-quedas" class="fi score-in" min="0" max="99" value="0" oninput="updateSaldoPreview()"></td>
-              <td style="text-align:center"><input type="number" id="r-quedas-sf" class="fi score-in" min="0" max="99" value="0" oninput="updateSaldoPreview()"></td>
+              <td style="text-align:center"><div class="stepper">
+                <button type="button" class="stepper-btn" onclick="stepScore('r-quedas',-1)" aria-label="Diminuir queda feita"><i class="ti ti-minus"></i></button>
+                <input type="number" id="r-quedas" class="fi score-in" min="0" max="99" value="0" oninput="updateSaldoPreview()">
+                <button type="button" class="stepper-btn" onclick="stepScore('r-quedas',1)" aria-label="Aumentar queda feita"><i class="ti ti-plus"></i></button>
+              </div></td>
+              <td style="text-align:center"><div class="stepper">
+                <button type="button" class="stepper-btn" onclick="stepScore('r-quedas-sf',-1)" aria-label="Diminuir queda sofrida"><i class="ti ti-minus"></i></button>
+                <input type="number" id="r-quedas-sf" class="fi score-in" min="0" max="99" value="0" oninput="updateSaldoPreview()">
+                <button type="button" class="stepper-btn" onclick="stepScore('r-quedas-sf',1)" aria-label="Aumentar queda sofrida"><i class="ti ti-plus"></i></button>
+              </div></td>
               <td style="text-align:center;color:var(--muted)">2</td>
             </tr>
             <tr data-pts="3">
               <td style="padding:7px 4px">Passagem de guarda</td>
-              <td style="text-align:center"><input type="number" id="r-guard" class="fi score-in" min="0" max="99" value="0" oninput="updateSaldoPreview()"></td>
-              <td style="text-align:center"><input type="number" id="r-guard-sf" class="fi score-in" min="0" max="99" value="0" oninput="updateSaldoPreview()"></td>
+              <td style="text-align:center"><div class="stepper">
+                <button type="button" class="stepper-btn" onclick="stepScore('r-guard',-1)" aria-label="Diminuir passagem feita"><i class="ti ti-minus"></i></button>
+                <input type="number" id="r-guard" class="fi score-in" min="0" max="99" value="0" oninput="updateSaldoPreview()">
+                <button type="button" class="stepper-btn" onclick="stepScore('r-guard',1)" aria-label="Aumentar passagem feita"><i class="ti ti-plus"></i></button>
+              </div></td>
+              <td style="text-align:center"><div class="stepper">
+                <button type="button" class="stepper-btn" onclick="stepScore('r-guard-sf',-1)" aria-label="Diminuir passagem sofrida"><i class="ti ti-minus"></i></button>
+                <input type="number" id="r-guard-sf" class="fi score-in" min="0" max="99" value="0" oninput="updateSaldoPreview()">
+                <button type="button" class="stepper-btn" onclick="stepScore('r-guard-sf',1)" aria-label="Aumentar passagem sofrida"><i class="ti ti-plus"></i></button>
+              </div></td>
               <td style="text-align:center;color:var(--muted)">3</td>
             </tr>
             <tr data-pts="2">
               <td style="padding:7px 4px">Raspagem</td>
-              <td style="text-align:center"><input type="number" id="r-rasp" class="fi score-in" min="0" max="99" value="0" oninput="updateSaldoPreview()"></td>
-              <td style="text-align:center"><input type="number" id="r-rasp-sf" class="fi score-in" min="0" max="99" value="0" oninput="updateSaldoPreview()"></td>
+              <td style="text-align:center"><div class="stepper">
+                <button type="button" class="stepper-btn" onclick="stepScore('r-rasp',-1)" aria-label="Diminuir raspagem feita"><i class="ti ti-minus"></i></button>
+                <input type="number" id="r-rasp" class="fi score-in" min="0" max="99" value="0" oninput="updateSaldoPreview()">
+                <button type="button" class="stepper-btn" onclick="stepScore('r-rasp',1)" aria-label="Aumentar raspagem feita"><i class="ti ti-plus"></i></button>
+              </div></td>
+              <td style="text-align:center"><div class="stepper">
+                <button type="button" class="stepper-btn" onclick="stepScore('r-rasp-sf',-1)" aria-label="Diminuir raspagem sofrida"><i class="ti ti-minus"></i></button>
+                <input type="number" id="r-rasp-sf" class="fi score-in" min="0" max="99" value="0" oninput="updateSaldoPreview()">
+                <button type="button" class="stepper-btn" onclick="stepScore('r-rasp-sf',1)" aria-label="Aumentar raspagem sofrida"><i class="ti ti-plus"></i></button>
+              </div></td>
               <td style="text-align:center;color:var(--muted)">2</td>
             </tr>
             <tr data-pts="4">
               <td style="padding:7px 4px">Montada</td>
-              <td style="text-align:center"><input type="number" id="r-montada" class="fi score-in" min="0" max="99" value="0" oninput="updateSaldoPreview()"></td>
-              <td style="text-align:center"><input type="number" id="r-montada-sf" class="fi score-in" min="0" max="99" value="0" oninput="updateSaldoPreview()"></td>
+              <td style="text-align:center"><div class="stepper">
+                <button type="button" class="stepper-btn" onclick="stepScore('r-montada',-1)" aria-label="Diminuir montada feita"><i class="ti ti-minus"></i></button>
+                <input type="number" id="r-montada" class="fi score-in" min="0" max="99" value="0" oninput="updateSaldoPreview()">
+                <button type="button" class="stepper-btn" onclick="stepScore('r-montada',1)" aria-label="Aumentar montada feita"><i class="ti ti-plus"></i></button>
+              </div></td>
+              <td style="text-align:center"><div class="stepper">
+                <button type="button" class="stepper-btn" onclick="stepScore('r-montada-sf',-1)" aria-label="Diminuir montada sofrida"><i class="ti ti-minus"></i></button>
+                <input type="number" id="r-montada-sf" class="fi score-in" min="0" max="99" value="0" oninput="updateSaldoPreview()">
+                <button type="button" class="stepper-btn" onclick="stepScore('r-montada-sf',1)" aria-label="Aumentar montada sofrida"><i class="ti ti-plus"></i></button>
+              </div></td>
               <td style="text-align:center;color:var(--muted)">4</td>
             </tr>
             <tr data-pts="4">
               <td style="padding:7px 4px">Pegada de costas</td>
-              <td style="text-align:center"><input type="number" id="r-costas" class="fi score-in" min="0" max="99" value="0" oninput="updateSaldoPreview()"></td>
-              <td style="text-align:center"><input type="number" id="r-costas-sf" class="fi score-in" min="0" max="99" value="0" oninput="updateSaldoPreview()"></td>
+              <td style="text-align:center"><div class="stepper">
+                <button type="button" class="stepper-btn" onclick="stepScore('r-costas',-1)" aria-label="Diminuir pegada de costas feita"><i class="ti ti-minus"></i></button>
+                <input type="number" id="r-costas" class="fi score-in" min="0" max="99" value="0" oninput="updateSaldoPreview()">
+                <button type="button" class="stepper-btn" onclick="stepScore('r-costas',1)" aria-label="Aumentar pegada de costas feita"><i class="ti ti-plus"></i></button>
+              </div></td>
+              <td style="text-align:center"><div class="stepper">
+                <button type="button" class="stepper-btn" onclick="stepScore('r-costas-sf',-1)" aria-label="Diminuir pegada de costas sofrida"><i class="ti ti-minus"></i></button>
+                <input type="number" id="r-costas-sf" class="fi score-in" min="0" max="99" value="0" oninput="updateSaldoPreview()">
+                <button type="button" class="stepper-btn" onclick="stepScore('r-costas-sf',1)" aria-label="Aumentar pegada de costas sofrida"><i class="ti ti-plus"></i></button>
+              </div></td>
               <td style="text-align:center;color:var(--muted)">4</td>
             </tr>
           </tbody>
@@ -1000,22 +1274,52 @@ input[type="checkbox"]:not(.switch input){
         <div class="card-title">Finalizações & Defesa</div>
         <div class="perf-grid">
           <div class="perf-item">
-            <div><div class="perf-num" style="color:var(--teal)"><input type="number" id="r-fin-ap" min="0" max="99" value="0" style="color:var(--teal)"></div><div class="perf-lbl">Finalizações aplicadas</div></div>
-            <i class="ti ti-check" style="color:var(--teal);font-size:18px;margin-left:auto"></i>
+            <div style="flex:1">
+              <div class="perf-num" style="color:var(--teal)"><div class="stepper stepper-lg">
+                <button type="button" class="stepper-btn" onclick="stepScore('r-fin-ap',-1)" aria-label="Diminuir finalizações aplicadas"><i class="ti ti-minus"></i></button>
+                <input type="number" id="r-fin-ap" min="0" max="99" value="0" style="color:var(--teal)" oninput="updateSaldoPreview()">
+                <button type="button" class="stepper-btn" onclick="stepScore('r-fin-ap',1)" aria-label="Aumentar finalizações aplicadas"><i class="ti ti-plus"></i></button>
+              </div></div>
+              <div class="perf-lbl">Finalizações aplicadas</div>
+            </div>
+            <i class="ti ti-check" style="color:var(--teal);font-size:18px"></i>
           </div>
           <div class="perf-item">
-            <div><div class="perf-num" style="color:var(--red)"><input type="number" id="r-fin-sf" min="0" max="99" value="0" style="color:var(--red)"></div><div class="perf-lbl">Finalizações sofridas</div></div>
-            <i class="ti ti-x" style="color:var(--red);font-size:18px;margin-left:auto"></i>
+            <div style="flex:1">
+              <div class="perf-num" style="color:var(--red)"><div class="stepper stepper-lg">
+                <button type="button" class="stepper-btn" onclick="stepScore('r-fin-sf',-1)" aria-label="Diminuir finalizações sofridas"><i class="ti ti-minus"></i></button>
+                <input type="number" id="r-fin-sf" min="0" max="99" value="0" style="color:var(--red)" oninput="updateSaldoPreview()">
+                <button type="button" class="stepper-btn" onclick="stepScore('r-fin-sf',1)" aria-label="Aumentar finalizações sofridas"><i class="ti ti-plus"></i></button>
+              </div></div>
+              <div class="perf-lbl">Finalizações sofridas</div>
+            </div>
+            <i class="ti ti-x" style="color:var(--red);font-size:18px"></i>
           </div>
           <div class="perf-item">
-            <div><div class="perf-num" style="color:var(--teal)"><input type="number" id="r-def" min="0" max="99" value="0" style="color:var(--teal)"></div><div class="perf-lbl">Defesas bem-sucedidas</div></div>
+            <div style="flex:1">
+              <div class="perf-num" style="color:var(--teal)"><div class="stepper stepper-lg">
+                <button type="button" class="stepper-btn" onclick="stepScore('r-def',-1)" aria-label="Diminuir defesas"><i class="ti ti-minus"></i></button>
+                <input type="number" id="r-def" min="0" max="99" value="0" style="color:var(--teal)" oninput="updateSaldoPreview()">
+                <button type="button" class="stepper-btn" onclick="stepScore('r-def',1)" aria-label="Aumentar defesas"><i class="ti ti-plus"></i></button>
+              </div></div>
+              <div class="perf-lbl">Defesas bem-sucedidas</div>
+            </div>
+            <i class="ti ti-shield" style="color:var(--teal);font-size:18px"></i>
           </div>
         </div>
       </div>
-      <button class="btn-primary" onclick="saveTraining()"><i class="ti ti-device-floppy"></i> Salvar Treino (+120 XP)</button>
+      <div class="reg-summary">
+        <div class="reg-summary-item"><span class="reg-summary-lbl"><i class="ti ti-clock-hour-4"></i>Duração</span><strong id="sum-duracao">—</strong></div>
+        <div class="reg-summary-item"><span class="reg-summary-lbl"><i class="ti ti-scale"></i>Saldo BJJ</span><strong id="sum-saldo">0</strong></div>
+        <div class="reg-summary-item"><span class="reg-summary-lbl"><i class="ti ti-star"></i>XP estimado</span><strong id="sum-xp" style="color:var(--gold)">+50 XP</strong></div>
+      </div>
+      <button class="btn-primary" id="btn-salvar-treino" onclick="saveTraining()"><i class="ti ti-device-floppy"></i> <span id="btn-salvar-txt">Salvar Treino (+50 XP)</span></button>
       <div class="card" style="margin-top:14px">
         <div class="card-title">Histórico de Treinos <span class="card-badge badge-white" id="treinos-count-badge">0</span></div>
-        <div id="treinos-list" style="display:flex;flex-direction:column;gap:8px"></div>
+        <div id="treinos-list" class="rec-list"></div>
+        <div id="treinos-showmore-wrap" style="text-align:center;margin-top:12px;display:none">
+          <button class="btn-sm" id="treinos-showmore-btn" onclick="toggleTreinosExpand()">Mostrar mais</button>
+        </div>
       </div>
     </div>
     <div class="screen" id="screen-rendimento">
@@ -1426,9 +1730,9 @@ const STORE = {
   del:(k)=>localStorage.removeItem('lj_'+k)
 };
 window.STORE = STORE;
-// Sanitiza texto dinâmico antes de inserir via innerHTML, evitando XSS
-// (essencial aqui pois nomes/academias de OUTROS usuários cadastrados no mesmo
-// navegador são exibidos no ranking social, competições e gráficos).
+
+
+
 function escapeHtml(str){
   return String(str ?? '').replace(/[&<>"']/g, c => ({
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
@@ -1800,7 +2104,50 @@ function updateIntColor(v){
   el.textContent=v;
   const pct=((v-1)/9)*100;
   document.getElementById('intRange').style.background=`linear-gradient(90deg,var(--red) ${pct}%,var(--card2) ${pct}%)`;
-  el.style.color=v<=3?'rgba(255,255,255,.5)':v<=6?'var(--gold)':'var(--red)';
+  const cor=v<=3?'rgba(255,255,255,.7)':v<=6?'var(--gold)':'var(--red)';
+  el.style.color=cor;
+  const badge=document.getElementById('int-badge');
+  if(badge){
+    badge.textContent=v<=3?'Leve':v<=6?'Moderado':'Extremo';
+    badge.style.color=cor;
+    badge.style.background=v<=3?'rgba(255,255,255,.08)':v<=6?'var(--gold-dim)':'var(--red-dim)';
+  }
+}
+
+function diffMinutos(inicio,fim){
+  if(!inicio||!fim) return 0;
+  const [h1,m1]=inicio.split(':').map(Number);
+  const [h2,m2]=fim.split(':').map(Number);
+  let diff=(h2*60+m2)-(h1*60+m1);
+  if(diff<0) diff+=24*60;
+  return diff;
+}
+function formatMin(min){
+  if(!min) return '—';
+  const h=Math.floor(min/60), m=min%60;
+  return h>0 ? `${h}h${m>0?' '+m+'min':''}` : `${m}min`;
+}
+function updateDuracaoPreview(){
+  const inicio=document.getElementById('reg-inicio').value;
+  const fim=document.getElementById('reg-fim').value;
+  const min=diffMinutos(inicio,fim);
+  const chip=document.getElementById('reg-duracao-txt');
+  if(chip) chip.textContent = min>0 ? `${formatMin(min)} de treino` : 'Defina o horário do treino';
+  const sum=document.getElementById('sum-duracao');
+  if(sum) sum.textContent = min>0 ? formatMin(min) : '—';
+}
+function calcXPGain(finAp,saldoBJJ){
+  return 50 + (finAp*15) + Math.max(0,saldoBJJ)*2;
+}
+function stepScore(id,delta){
+  const el=document.getElementById(id);
+  if(!el) return;
+  let v=(parseInt(el.value)||0)+delta;
+  v=Math.max(0,Math.min(99,v));
+  el.value=v;
+  el.dispatchEvent(new Event('input',{bubbles:true}));
+  const wrap=el.closest('.stepper');
+  if(wrap){ wrap.classList.remove('bump'); void wrap.offsetWidth; wrap.classList.add('bump'); }
 }
 function gv(id){ return parseInt(document.getElementById(id).value)||0 }
 function calcSaldoBJJ(s){
@@ -1821,12 +2168,28 @@ function updateSaldoPreview(){
   const saldo=calcSaldoBJJ(s);
   const el=document.getElementById('r-saldo-preview');
   el.textContent=(saldo>0?'+':'')+saldo;
-  el.style.color=saldo>0?'var(--teal)':saldo<0?'var(--red)':'var(--muted)';
+  const cor=saldo>0?'var(--teal)':saldo<0?'var(--red)':'var(--muted)';
+  el.style.color=cor;
+
+  const finAp=gv('r-fin-ap');
+  const xp=calcXPGain(finAp,saldo);
+  const sumSaldo=document.getElementById('sum-saldo');
+  if(sumSaldo){ sumSaldo.textContent=(saldo>0?'+':'')+saldo; sumSaldo.style.color=cor; }
+  const sumXp=document.getElementById('sum-xp');
+  if(sumXp) sumXp.textContent='+'+xp+' XP';
+  const btnTxt=document.getElementById('btn-salvar-txt');
+  if(btnTxt) btnTxt.textContent=`Salvar Treino (+${xp} XP)`;
+  updateDuracaoPreview();
 }
 function saveTraining(){
   const data=document.getElementById('reg-data').value||today();
   const inicio=document.getElementById('reg-inicio').value;
   const fim=document.getElementById('reg-fim').value;
+  const duracaoMin=diffMinutos(inicio,fim);
+  if(inicio && fim && duracaoMin===0){
+    toast('Horário de início e fim parecem iguais — confira antes de salvar.','error');
+    return;
+  }
   const intensidade=parseInt(document.getElementById('intRange').value)||5;
   const parceiro=document.getElementById('reg-parceiro').value.trim();
   const obs=document.getElementById('reg-obs').value.trim();
@@ -1839,9 +2202,9 @@ function saveTraining(){
     costas:gv('r-costas'), costasSf:gv('r-costas-sf'),
   };
   stats.saldoBJJ=calcSaldoBJJ(stats);
-  const xpGain=50+(stats.finAp*15)+Math.max(0,stats.saldoBJJ)*2;
+  const xpGain=calcXPGain(stats.finAp,stats.saldoBJJ);
   const ud=getUserData();
-  const treino={id:Date.now(),data,inicio,fim,tipo:selectedType,intensidade,parceiro,obs,stats};
+  const treino={id:Date.now(),data,inicio,fim,duracaoMin,tipo:selectedType,intensidade,parceiro,obs,stats};
   ud.treinos.push(treino);
   ud.xp=(ud.xp||0)+xpGain;
   ud.lastTrainDate=data;
@@ -1851,8 +2214,10 @@ function saveTraining(){
   document.getElementById('reg-obs').value='';
   updateSaldoPreview();
   refreshAll();
+  const btn=document.getElementById('btn-salvar-treino');
+  if(btn){ btn.classList.remove('saved-pulse'); void btn.offsetWidth; btn.classList.add('saved-pulse'); }
   toast(`Treino salvo! +${xpGain} XP 🥋`);
-  showScreen('dashboard');
+  setTimeout(()=>{ if(btn) btn.classList.remove('saved-pulse'); showScreen('dashboard'); }, 550);
 }
 let mapaPeriodoDias = 30;
 function setPeriodo(dias){
@@ -1900,7 +2265,7 @@ function renderMapaPosicoes(ud, treinosFiltrados){
     return [CX+radius*Math.cos(rad), CY+radius*Math.sin(rad)];
   };
 
-  // grid de fundo (anéis radar)
+  
   let grid='';
   [0.42,0.68,0.94].forEach(f=>{
     grid+=`<circle cx="${CX}" cy="${CY}" r="${R*f+NODE_R*0.0}" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="1"/>`;
@@ -2567,7 +2932,7 @@ async function tentarPeriodicSync(){
       await swRegistration.periodicSync.register('lifejiu-reminder-check', { minInterval: 12*60*60*1000 });
       return true;
     }
-  }catch(e){ /* não suportado neste navegador */ }
+  }catch(e){  }
   return false;
 }
 function toggleNotifications(on){
@@ -2665,8 +3030,8 @@ function importJSON(ev){
         toast('Arquivo inválido: estrutura de backup não reconhecida.','error'); return;
       }
       if(!confirm('Isso vai sobrescrever todos os seus dados atuais com o backup importado. Continuar?')) return;
-      // Mescla com os defaults para garantir que campos ausentes/corrompidos
-      // não quebrem telas que esperam arrays/objetos (ex: treinos.map, metas.semanal)
+      
+      
       const base=defaultUserData();
       const safe={
         ...base,
@@ -2688,25 +3053,63 @@ function importJSON(ev){
   reader.readAsText(file);
   ev.target.value='';
 }
+function formatarDataRelativa(dataStr){
+  const d=new Date(dataStr+'T12:00');
+  const hoje=new Date(); hoje.setHours(12,0,0,0);
+  const diffDias=Math.round((hoje-d)/86400000);
+  if(diffDias===0) return 'Hoje';
+  if(diffDias===1) return 'Ontem';
+  if(diffDias>1 && diffDias<7) return `Há ${diffDias} dias`;
+  return d.toLocaleDateString('pt-BR');
+}
+let treinosListaExpandida=false;
+function toggleTreinosExpand(){
+  treinosListaExpandida=!treinosListaExpandida;
+  renderTreinosList(getUserData());
+}
 function renderTreinosList(ud){
-  const t=[...(ud.treinos||[])].sort((a,b)=>new Date(b.data)-new Date(a.data));
-  document.getElementById('treinos-count-badge').textContent=t.length;
+  const all=[...(ud.treinos||[])].sort((a,b)=>new Date(b.data)-new Date(a.data));
+  document.getElementById('treinos-count-badge').textContent=all.length;
   const wrap=document.getElementById('treinos-list');
-  if(!t.length){ wrap.innerHTML=`<div style="text-align:center;padding:18px;color:var(--muted);font-size:13px">Nenhum treino registrado ainda.</div>`; return }
+  const showMoreWrap=document.getElementById('treinos-showmore-wrap');
+  if(!all.length){
+    wrap.innerHTML=`<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">
+      <i class="ti ti-dumbbell" style="font-size:28px;display:block;margin-bottom:8px;opacity:.4"></i>
+      Nenhum treino registrado ainda.<br>Preencha o formulário acima para começar.
+    </div>`;
+    if(showMoreWrap) showMoreWrap.style.display='none';
+    return;
+  }
+  const LIMIT=6;
+  const t = treinosListaExpandida ? all : all.slice(0,LIMIT);
   const tiposLabel={tecnica:'Técnica',sparring:'Sparring',competicao:'Competição',fisico:'Prep. Física'};
+  const tiposIcon={tecnica:'ti-atom',sparring:'ti-swords',competicao:'ti-medal',fisico:'ti-run'};
+  const tiposClasse={tecnica:'ri-tec',sparring:'ri-sp',competicao:'ri-comp',fisico:'ri-fis'};
   wrap.innerHTML=t.map(tr=>{
     const saldo=tr.stats?.saldoBJJ ?? calcSaldoBJJ(tr.stats||{});
     const saldoCor=saldo>0?'var(--teal)':saldo<0?'var(--red)':'var(--muted)';
+    const dur=tr.duracaoMin ? formatMin(tr.duracaoMin) : (tr.inicio&&tr.fim?tr.inicio+'–'+tr.fim:'');
     return `
-    <div style="display:flex;align-items:center;gap:12px;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 12px">
-      <div style="flex:1">
-        <div style="font-size:13px;font-weight:600">${new Date(tr.data+'T12:00').toLocaleDateString('pt-BR')} · ${tiposLabel[tr.tipo]||tr.tipo}</div>
-        <div style="font-size:11px;color:var(--muted)">Intensidade ${tr.intensidade}/10 · Fin. ${tr.stats?.finAp||0}/${tr.stats?.finSf||0} · Saldo BJJ <span style="color:${saldoCor};font-weight:600">${saldo>0?'+':''}${saldo}</span>${tr.parceiro?' · com '+tr.parceiro:''}</div>
+    <div class="rec-item" style="cursor:default">
+      <div class="rec-icon ${tiposClasse[tr.tipo]||'ri-tec'}"><i class="ti ${tiposIcon[tr.tipo]||'ti-atom'}"></i></div>
+      <div class="rec-info">
+        <strong>${formatarDataRelativa(tr.data)} · ${tiposLabel[tr.tipo]||tr.tipo}</strong>
+        <span>Intensidade ${tr.intensidade}/10 · Fin. ${tr.stats?.finAp||0}/${tr.stats?.finSf||0} · Saldo <span style="color:${saldoCor};font-weight:600">${saldo>0?'+':''}${saldo}</span>${tr.parceiro?' · com '+tr.parceiro:''}</span>
       </div>
-      <button class="btn-sm" style="padding:6px 9px" onclick="openEditTreino(${tr.id})"><i class="ti ti-edit" style="font-size:13px"></i></button>
-      <button class="btn-sm" style="padding:6px 9px;border-color:var(--border2);color:var(--red)" onclick="deleteTreino(${tr.id})"><i class="ti ti-trash" style="font-size:13px"></i></button>
+      <div class="rec-meta">
+        ${dur?`<div class="rec-dur">${dur}</div>`:''}
+        <div style="display:flex;gap:6px;margin-top:5px">
+          <button class="btn-sm" style="padding:5px 8px" onclick="event.stopPropagation();openEditTreino(${tr.id})" aria-label="Editar treino"><i class="ti ti-edit" style="font-size:13px"></i></button>
+          <button class="btn-sm" style="padding:5px 8px;border-color:var(--border2);color:var(--red)" onclick="event.stopPropagation();deleteTreino(${tr.id})" aria-label="Excluir treino"><i class="ti ti-trash" style="font-size:13px"></i></button>
+        </div>
+      </div>
     </div>`;
   }).join('');
+  if(showMoreWrap){
+    showMoreWrap.style.display = all.length>LIMIT ? 'block' : 'none';
+    const btn=document.getElementById('treinos-showmore-btn');
+    if(btn) btn.textContent = treinosListaExpandida ? 'Mostrar menos' : `Mostrar mais (${all.length-LIMIT})`;
+  }
 }
 let editingTreinoId=null;
 function openEditTreino(id){
@@ -2778,7 +3181,7 @@ function exportCartaoAtleta(){
   const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
   const ctx=cv.getContext('2d');
 
-  // fundo obsidiana
+  
   const bg=ctx.createLinearGradient(0,0,W,H);
   bg.addColorStop(0,'#1A0D0D'); bg.addColorStop(1,'#0E0A0A');
   ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
@@ -2786,17 +3189,17 @@ function exportCartaoAtleta(){
   glow.addColorStop(0,'rgba(255,255,255,.06)'); glow.addColorStop(1,'rgba(255,255,255,0)');
   ctx.fillStyle=glow; ctx.fillRect(0,0,W,H);
 
-  // borda
+  
   ctx.strokeStyle='rgba(215,38,56,.4)'; ctx.lineWidth=3;
   ctx.strokeRect(24,24,W-48,H-48);
 
-  // logo
+  
   ctx.fillStyle='#D72638'; ctx.font='800 46px Arial';
   ctx.fillText('LIFE JIU', 60, 110);
   ctx.fillStyle='rgba(245,239,239,.5)'; ctx.font='400 22px Arial';
   ctx.fillText('Cartão de Atleta', 60, 148);
 
-  // nome + faixa
+  
   ctx.fillStyle='#fff'; ctx.font='800 64px Arial';
   ctx.fillText(ud.profile.nome||'Atleta', 60, 280);
   ctx.fillStyle='#F2B705'; ctx.font='700 30px Arial';
@@ -2806,11 +3209,11 @@ function exportCartaoAtleta(){
     ctx.fillText(ud.profile.academia, 60, 364);
   }
 
-  // linha separadora
+  
   ctx.strokeStyle='rgba(215,38,56,.2)'; ctx.lineWidth=1;
   ctx.beginPath(); ctx.moveTo(60,410); ctx.lineTo(W-60,410); ctx.stroke();
 
-  // stats grid
+  
   const stats=[
     {label:'Nível',value:`${xpData.lv}`,sub:xpData.name,cor:'#D72638'},
     {label:'XP Total',value:`${ud.xp||0}`,sub:'experiência',cor:'#F2B705'},
@@ -2831,14 +3234,14 @@ function exportCartaoAtleta(){
   ctx.strokeStyle='rgba(215,38,56,.2)'; ctx.lineWidth=1;
   ctx.beginPath(); ctx.moveTo(60,610); ctx.lineTo(W-60,610); ctx.stroke();
 
-  // saldo BJJ destaque
+  
   ctx.fillStyle='rgba(245,239,239,.5)'; ctx.font='400 24px Arial';
   ctx.fillText('SALDO TOTAL DE PONTOS (PONTUAÇÃO OFICIAL)', 60, 680);
   const saldoCor = totalSaldo>0?'#1FC8B4':totalSaldo<0?'#D72638':'#fff';
   ctx.fillStyle=saldoCor; ctx.font='800 130px Arial';
   ctx.fillText(`${totalSaldo>0?'+':''}${totalSaldo}`, 60, 830);
 
-  // mini mapa de posições (barras)
+  
   const agg=(ap,sf)=>t.reduce((acc,x)=>{acc.a+=(x.stats?.[ap]||0);acc.s+=(x.stats?.[sf]||0);return acc},{a:0,s:0});
   let yBar=920;
   ctx.fillStyle='rgba(245,239,239,.5)'; ctx.font='400 22px Arial';
@@ -2859,7 +3262,7 @@ function exportCartaoAtleta(){
     yBar+=54;
   });
 
-  // rodapé
+  
   ctx.fillStyle='rgba(245,239,239,.3)'; ctx.font='400 18px Arial';
   ctx.fillText(`Gerado em ${new Date().toLocaleDateString('pt-BR')} · lifejiu.app`, 60, H-50);
 
@@ -3037,6 +3440,25 @@ window.syncPull = async function(){
 };
 document.addEventListener('DOMContentLoaded', initSupaFields);
 if(document.readyState!=='loading') initSupaFields();
+</script>
+<script>
+
+(function(){
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var isTouch = window.matchMedia && window.matchMedia('(hover:none)').matches;
+  if(reduce || isTouch) return;
+  var raf = null, tx = 0, ty = 0;
+  function apply(){
+    document.documentElement.style.setProperty('--px', tx.toFixed(2));
+    document.documentElement.style.setProperty('--py', ty.toFixed(2));
+    raf = null;
+  }
+  window.addEventListener('mousemove', function(e){
+    tx = (e.clientX / window.innerWidth - .5) * 10;
+    ty = (e.clientY / window.innerHeight - .5) * 10;
+    if(!raf) raf = requestAnimationFrame(apply);
+  }, {passive:true});
+})();
 </script>
 </body>
 </html>
