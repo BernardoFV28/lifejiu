@@ -893,6 +893,19 @@ textarea:focus-visible,[tabindex]:focus-visible{box-shadow:var(--focus-ring)}
 }
 .duracao-chip i{font-size:14px}
 
+.sub-tags-wrap{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px;min-height:0}
+.sub-tag{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;padding:5px 8px 5px 11px;border-radius:16px}
+.sub-tag.ap{background:var(--teal-dim);border:1px solid rgba(31,200,180,.3);color:var(--teal)}
+.sub-tag.sf{background:var(--red-dim);border:1px solid rgba(215,38,56,.3);color:var(--red-bright)}
+.sub-tag button{background:none;border:none;color:inherit;opacity:.6;cursor:pointer;font-size:13px;line-height:1;padding:0;display:flex}
+.sub-tag button:hover{opacity:1}
+.sub-tag-input-row{display:flex;gap:7px;margin-top:9px}
+.sub-tag-input-row .fi{flex:1}
+.partner-item{display:flex;align-items:center;gap:11px;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--card2);margin-bottom:8px}
+.partner-av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#0d8f80);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;color:#fff}
+.duelo-vs{display:flex;align-items:center;gap:14px;justify-content:center;margin:12px 0}
+.duelo-side{flex:1;text-align:center;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px}
+.duelo-stat{font-size:20px;font-weight:800}
 
 .type-grid{grid-template-columns:repeat(2,1fr)}
 .type-btn{
@@ -1179,6 +1192,18 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
             <label class="fl">Observações</label>
             <textarea id="reg-obs" class="fi" placeholder="Como foi o treino? Aprendizados, dificuldades..."></textarea>
           </div>
+          <div class="fg">
+            <label class="fl"><i class="ti ti-chalkboard" style="font-size:13px;margin-right:4px"></i>Correção do professor (opcional)</label>
+            <div class="fr">
+              <select id="reg-nota-pos" class="fi" style="flex:0 0 150px">
+                <option value="">Posição geral</option>
+                <option>Guarda Fechada</option><option>Meia Guarda</option><option>Montada</option>
+                <option>Costas</option><option>50/50</option><option>Guarda Aberta</option>
+                <option>Queda</option><option>Passagem</option><option>Raspagem</option>
+              </select>
+              <input type="text" id="reg-nota-prof" class="fi" placeholder="O que o professor corrigiu hoje?">
+            </div>
+          </div>
         </div>
       </div>
       <div class="card" style="margin-bottom:14px">
@@ -1284,6 +1309,14 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
             </div>
             <i class="ti ti-check" style="color:var(--teal);font-size:18px"></i>
           </div>
+          <div class="perf-item" style="flex-direction:column;align-items:stretch;grid-column:1/-1">
+            <label class="fl">Quais finalizações? (detalha o gráfico de Rendimento)</label>
+            <div class="sub-tag-input-row">
+              <input type="text" id="sub-tag-ap-input" class="fi" list="sub-list" placeholder="Ex: Triângulo, Kimura..." onkeydown="if(event.key==='Enter'){event.preventDefault();addSubTag('ap')}">
+              <button type="button" class="btn-sm" onclick="addSubTag('ap')"><i class="ti ti-plus"></i></button>
+            </div>
+            <div class="sub-tags-wrap" id="sub-tags-ap"></div>
+          </div>
           <div class="perf-item">
             <div style="flex:1">
               <div class="perf-num" style="color:var(--red)"><div class="stepper stepper-lg">
@@ -1295,6 +1328,20 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
             </div>
             <i class="ti ti-x" style="color:var(--red);font-size:18px"></i>
           </div>
+          <div class="perf-item" style="flex-direction:column;align-items:stretch;grid-column:1/-1">
+            <label class="fl">Quais te finalizaram?</label>
+            <div class="sub-tag-input-row">
+              <input type="text" id="sub-tag-sf-input" class="fi" list="sub-list" placeholder="Ex: Guilhotina, RNC..." onkeydown="if(event.key==='Enter'){event.preventDefault();addSubTag('sf')}">
+              <button type="button" class="btn-sm" onclick="addSubTag('sf')"><i class="ti ti-plus"></i></button>
+            </div>
+            <div class="sub-tags-wrap" id="sub-tags-sf"></div>
+          </div>
+          <datalist id="sub-list">
+            <option value="Armlock"></option><option value="Triângulo"></option><option value="Kimura"></option>
+            <option value="Guilhotina"></option><option value="RNC (mata-leão)"></option><option value="Xarkey"></option>
+            <option value="Katagatame"></option><option value="Anaconda"></option><option value="Ezekiel"></option>
+            <option value="Omoplata"></option><option value="Norte-sul"></option><option value="Wristlock"></option>
+          </datalist>
           <div class="perf-item">
             <div style="flex:1">
               <div class="perf-num" style="color:var(--teal)"><div class="stepper stepper-lg">
@@ -1401,6 +1448,15 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
           <div id="metas-mensais-view" style="display:flex;flex-direction:column;gap:9px"></div>
         </div>
       </div>
+      <div id="meta-sugestao-wrap" style="margin-bottom:12px"></div>
+      <div class="card">
+        <div class="card-title">
+          <span><i class="ti ti-chalkboard" style="color:var(--red);margin-right:8px"></i>Notas do Professor</span>
+          <span class="card-badge badge-white" id="notas-count-badge">0</span>
+        </div>
+        <input type="text" id="notas-search" class="fi" placeholder="Buscar por posição ou palavra-chave..." style="margin-bottom:11px" oninput="renderNotasProf(getUserData(), this.value)">
+        <div id="notas-prof-list" style="display:flex;flex-direction:column;gap:9px"></div>
+      </div>
     </div>
     <div class="screen" id="screen-fisico">
       <div class="topbar">
@@ -1443,6 +1499,15 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <button class="btn-primary" id="ia-real-btn" onclick="gerarAnaliseIA()" style="margin-top:12px;width:auto;padding:11px 20px">
           <i class="ti ti-sparkles"></i> Carregar e gerar análise
         </button>
+      </div>
+      <div class="card" style="margin-bottom:12px;border-color:rgba(244,185,66,.3)" id="ia-plato-card">
+        <div class="card-title">
+          <span><i class="ti ti-chart-line" style="color:var(--gold);margin-right:8px"></i>Detecção de Platô</span>
+          <span class="card-badge badge-white">Baseado em regras locais</span>
+        </div>
+        <div id="ia-plato" style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:12px;color:var(--muted);padding:8px">Registre mais treinos para detectar platôs de evolução.</div>
+        </div>
       </div>
       <div class="card" style="margin-bottom:12px;border-color:rgba(215,38,56,.3)">
         <div class="card-title">
@@ -1488,6 +1553,19 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         <div class="card">
           <div class="card-title">Desafios Ativos <span class="card-badge badge-gold">Semanal</span></div>
           <div id="challenges-list" style="display:flex;flex-direction:column;gap:10px"></div>
+        </div>
+      </div>
+      <div class="g2" style="margin-top:12px">
+        <div class="card">
+          <div class="card-title"><span><i class="ti ti-users-group" style="color:var(--teal);margin-right:8px"></i>Parceiros de Treino</span></div>
+          <div id="parceiros-list" style="display:flex;flex-direction:column"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span><i class="ti ti-swords" style="color:var(--gold);margin-right:8px"></i>Desafio 1x1</span></div>
+          <select id="duelo-select" class="fi" style="margin-bottom:11px" onchange="renderDuelo()">
+            <option value="">Escolha um atleta para desafiar...</option>
+          </select>
+          <div id="duelo-result"></div>
         </div>
       </div>
     </div>
@@ -2181,6 +2259,24 @@ function updateSaldoPreview(){
   if(btnTxt) btnTxt.textContent=`Salvar Treino (+${xp} XP)`;
   updateDuracaoPreview();
 }
+let regSubsAp=[], regSubsSf=[];
+function addSubTag(which){
+  const inp=document.getElementById(which==='ap'?'sub-tag-ap-input':'sub-tag-sf-input');
+  const val=inp.value.trim();
+  if(!val) return;
+  (which==='ap'?regSubsAp:regSubsSf).push(val);
+  inp.value='';
+  renderSubTags();
+}
+function removeSubTag(which, idx){
+  (which==='ap'?regSubsAp:regSubsSf).splice(idx,1);
+  renderSubTags();
+}
+function renderSubTags(){
+  const apEl=document.getElementById('sub-tags-ap'), sfEl=document.getElementById('sub-tags-sf');
+  if(apEl) apEl.innerHTML=regSubsAp.map((s,i)=>`<span class="sub-tag ap">${escapeHtml(s)}<button type="button" onclick="removeSubTag('ap',${i})" aria-label="Remover"><i class="ti ti-x"></i></button></span>`).join('');
+  if(sfEl) sfEl.innerHTML=regSubsSf.map((s,i)=>`<span class="sub-tag sf">${escapeHtml(s)}<button type="button" onclick="removeSubTag('sf',${i})" aria-label="Remover"><i class="ti ti-x"></i></button></span>`).join('');
+}
 function saveTraining(){
   const data=document.getElementById('reg-data').value||today();
   const inicio=document.getElementById('reg-inicio').value;
@@ -2193,6 +2289,9 @@ function saveTraining(){
   const intensidade=parseInt(document.getElementById('intRange').value)||5;
   const parceiro=document.getElementById('reg-parceiro').value.trim();
   const obs=document.getElementById('reg-obs').value.trim();
+  const notaProf=document.getElementById('reg-nota-prof').value.trim();
+  const notaProfPos=document.getElementById('reg-nota-pos').value;
+  const subsAp=[...regSubsAp], subsSf=[...regSubsSf];
   const stats={
     finAp:gv('r-fin-ap'), finSf:gv('r-fin-sf'), def:gv('r-def'),
     quedas:gv('r-quedas'), quedasSf:gv('r-quedas-sf'),
@@ -2204,7 +2303,7 @@ function saveTraining(){
   stats.saldoBJJ=calcSaldoBJJ(stats);
   const xpGain=calcXPGain(stats.finAp,stats.saldoBJJ);
   const ud=getUserData();
-  const treino={id:Date.now(),data,inicio,fim,duracaoMin,tipo:selectedType,intensidade,parceiro,obs,stats};
+  const treino={id:Date.now(),data,inicio,fim,duracaoMin,tipo:selectedType,intensidade,parceiro,obs,notaProf,notaProfPos,subsAp,subsSf,stats};
   ud.treinos.push(treino);
   ud.xp=(ud.xp||0)+xpGain;
   ud.lastTrainDate=data;
@@ -2212,6 +2311,9 @@ function saveTraining(){
   ['r-fin-ap','r-fin-sf','r-guard','r-guard-sf','r-rasp','r-rasp-sf','r-quedas','r-quedas-sf','r-montada','r-montada-sf','r-costas','r-costas-sf','r-def'].forEach(id=>document.getElementById(id).value=0);
   document.getElementById('reg-parceiro').value='';
   document.getElementById('reg-obs').value='';
+  document.getElementById('reg-nota-prof').value='';
+  document.getElementById('reg-nota-pos').value='';
+  regSubsAp=[]; regSubsSf=[]; renderSubTags();
   updateSaldoPreview();
   refreshAll();
   const btn=document.getElementById('btn-salvar-treino');
@@ -2422,23 +2524,29 @@ function renderRendimento(ud){
       <div class="pos-bar"><div class="pos-fill" style="width:${p.pct}%;background:${p.color}"></div></div>
       <div class="pos-stat" style="color:${p.color}">${p.pct}%</div>
     </div>`).join('');
-  const finTypes={'Armlock':0,'Triângulo':0,'Choke':0,'Kimura':0,'RNC':0,'Outro':0};
+  const subCounts={};
+  t.forEach(x=>(x.subsAp||[]).forEach(s=>{ subCounts[s]=(subCounts[s]||0)+1 }));
+  const subEntries=Object.entries(subCounts).sort((a,b)=>b[1]-a[1]).slice(0,6);
   if(charts.sub) charts.sub.destroy();
-  charts.sub=new Chart(document.getElementById('subChart'),{
-    type:'bar',
-    data:{
-      labels:Object.keys(finTypes),
-      datasets:[{
-        data:[totFin>0?Math.round(totFin*.33):0,totFin>0?Math.round(totFin*.24):0,totFin>0?Math.round(totFin*.21):0,totFin>0?Math.round(totFin*.12):0,totFin>0?Math.round(totFin*.07):0,totFin>0?totFin-Math.round(totFin*.97):0],
-        backgroundColor:['var(--red)','rgba(215,38,56,.65)','rgba(215,38,56,.45)','rgba(215,38,56,.3)','rgba(215,38,56,.18)','rgba(215,38,56,.1)'],
-        borderRadius:6,borderSkipped:false
-      }]
-    },
-    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
-      x:{grid:{color:'rgba(215,38,56,.05)'},ticks:{color:'rgba(245,239,239,.4)',font:{size:11}}},
-      y:{grid:{display:false},ticks:{color:'rgba(245,239,239,.6)',font:{size:11}}}
-    }}
-  });
+  const subChartWrap=document.getElementById('subChart').parentElement;
+  if(!subEntries.length){
+    subChartWrap.innerHTML='<canvas id="subChart"></canvas><div id="subChart-empty" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted);text-align:center;padding:0 14px">Registre as finalizações específicas no formulário de treino para ver seu ranking de golpes favoritos aqui.</div>';
+    subChartWrap.style.position='relative';
+  } else {
+    subChartWrap.innerHTML='<canvas id="subChart"></canvas>';
+    const reds=['var(--red)','rgba(215,38,56,.75)','rgba(215,38,56,.6)','rgba(215,38,56,.45)','rgba(215,38,56,.3)','rgba(215,38,56,.18)'];
+    charts.sub=new Chart(document.getElementById('subChart'),{
+      type:'bar',
+      data:{
+        labels:subEntries.map(e=>e[0]),
+        datasets:[{ data:subEntries.map(e=>e[1]), backgroundColor:reds, borderRadius:6, borderSkipped:false }]
+      },
+      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+        x:{grid:{color:'rgba(215,38,56,.05)'},ticks:{color:'rgba(245,239,239,.4)',font:{size:11},precision:0}},
+        y:{grid:{display:false},ticks:{color:'rgba(245,239,239,.6)',font:{size:11}}}
+      }}
+    });
+  }
   const months=[];const finByMonth=[];const defByMonth=[];
   for(let i=5;i>=0;i--){
     const d=new Date(); d.setMonth(d.getMonth()-i);
@@ -2483,6 +2591,47 @@ function renderEvolucao(ud){
   document.getElementById('ach-count-badge').textContent=`${achCount}/${ACHIEVEMENTS.length}`;
   renderMetasView('semanal', ud);
   renderMetasView('mensal', ud);
+  renderSugestaoMeta(ud);
+  renderNotasProf(ud, document.getElementById('notas-search')?.value||'');
+}
+function renderSugestaoMeta(ud){
+  const wrap=document.getElementById('meta-sugestao-wrap');
+  if(!wrap) return;
+  const t=filterByPeriodo(ud.treinos||[]);
+  const agg=(ap,sf)=>t.reduce((acc,x)=>{acc.a+=(x.stats?.[ap]||0);acc.s+=(x.stats?.[sf]||0);return acc},{a:0,s:0});
+  const candidatas=POSICOES_DEFS.map(p=>{
+    const {a,s}=agg(p.ap,p.sf); const total=a+s;
+    return {...p, ratio: total>0?a/total:null, total};
+  }).filter(p=>p.total>=3).sort((a,b)=>a.ratio-b.ratio);
+  if(!candidatas.length){ wrap.innerHTML=''; return; }
+  const pior=candidatas[0];
+  wrap.innerHTML=`
+    <div class="card" style="border-color:rgba(244,185,66,.3)">
+      <div class="card-title"><span><i class="ti ti-bulb" style="color:var(--gold);margin-right:8px"></i>Sugestão de foco</span><span class="card-badge badge-gold">automática</span></div>
+      <p style="font-size:12.5px;color:var(--text);margin:0 0 10px;line-height:1.6">Sua posição mais frágil no período é <strong>${pior.nome}</strong>, com <strong>${Math.round(pior.ratio*100)}%</strong> de aproveitamento. Priorize drilling e sparring focado nela nos próximos treinos antes de criar uma meta nova.</p>
+      <button class="btn-sm" onclick="showScreen('registro')"><i class="ti ti-plus-circle" style="font-size:12px"></i> Registrar treino focado nisso</button>
+    </div>`;
+}
+function renderNotasProf(ud, filtro){
+  const list=document.getElementById('notas-prof-list');
+  const badge=document.getElementById('notas-count-badge');
+  if(!list) return;
+  const termo=(filtro||'').trim().toLowerCase();
+  let notas=[...(ud.treinos||[])].filter(t=>t.notaProf).sort((a,b)=>new Date(b.data)-new Date(a.data));
+  if(termo) notas=notas.filter(t=>(t.notaProf||'').toLowerCase().includes(termo) || (t.notaProfPos||'').toLowerCase().includes(termo));
+  if(badge) badge.textContent=notas.length;
+  if(!notas.length){
+    list.innerHTML=`<div style="text-align:center;padding:18px;color:var(--muted);font-size:12.5px">${termo?'Nenhuma nota encontrada com esse filtro.':'Nenhuma correção registrada ainda. Adicione no formulário de Registrar Treino.'}</div>`;
+    return;
+  }
+  list.innerHTML=notas.map(t=>`
+    <div style="padding:10px 12px;background:var(--card2);border:1px solid var(--border);border-radius:9px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="font-size:11px;color:var(--muted)">${formatarDataRelativa(t.data)}</span>
+        ${t.notaProfPos?`<span class="card-badge badge-white" style="font-size:10px">${escapeHtml(t.notaProfPos)}</span>`:''}
+      </div>
+      <div style="font-size:13px;line-height:1.5">${escapeHtml(t.notaProf)}</div>
+    </div>`).join('');
 }
 function renderMetasView(tipo, ud){
   const el=document.getElementById(`metas-${tipo==='semanal'?'semanais':'mensais'}-view`);
@@ -2620,8 +2769,45 @@ function renderComps(ud){
     }).join('');
   }
 }
+function detectarPlato(ud){
+  const el=document.getElementById('ia-plato');
+  if(!el) return;
+  const t=ud.treinos||[];
+  const now=new Date();
+  const d30=new Date(now); d30.setDate(now.getDate()-30);
+  const d60=new Date(now); d60.setDate(now.getDate()-60);
+  const recente=t.filter(x=>new Date(x.data)>=d30);
+  const anterior=t.filter(x=>{const d=new Date(x.data); return d>=d60 && d<d30});
+  if(recente.length<3 || anterior.length<3){
+    el.innerHTML='<div style="font-size:12px;color:var(--muted);padding:8px">Registre pelo menos 3 treinos nos últimos 30 dias e 3 nos 30 dias anteriores para detectar platôs.</div>';
+    return;
+  }
+  const agg=(lista,ap,sf)=>lista.reduce((acc,x)=>{acc.a+=(x.stats?.[ap]||0);acc.s+=(x.stats?.[sf]||0);return acc},{a:0,s:0});
+  const achados=[];
+  POSICOES_DEFS.forEach(p=>{
+    const r=agg(recente,p.ap,p.sf), an=agg(anterior,p.ap,p.sf);
+    const volR=r.a+r.s, volA=an.a+an.s;
+    if(volR<3 || volA<3) return;
+    const ratioR=r.a/volR, ratioA=an.a/volA;
+    const cresceuVolume = volR >= volA*1.15;
+    const estagnou = ratioR <= ratioA + 0.03;
+    if(cresceuVolume && estagnou){
+      achados.push(`Em <strong>${p.nome}</strong>, seu volume subiu de ${volA} para ${volR} disputas, mas o aproveitamento ficou parado em ~${Math.round(ratioR*100)}% (era ${Math.round(ratioA*100)}%). Sinal de platô — considere trocar o tipo de treino ou pedir correção técnica nessa posição.`);
+    }
+  });
+  const treinosVolR=recente.length, treinosVolA=anterior.length;
+  const saldoR=recente.reduce((a,x)=>a+(x.stats?.saldoBJJ??calcSaldoBJJ(x.stats||{})),0);
+  const saldoA=anterior.reduce((a,x)=>a+(x.stats?.saldoBJJ??calcSaldoBJJ(x.stats||{})),0);
+  if(treinosVolR >= treinosVolA*1.15 && saldoR<=saldoA){
+    achados.push(`Você treinou mais nos últimos 30 dias (${treinosVolR} vs ${treinosVolA}), mas o saldo geral de pontos não acompanhou (${saldoR>0?'+':''}${saldoR} vs ${saldoA>0?'+':''}${saldoA} antes). Mais volume sem ganho de performance pode indicar fadiga acumulada ou treino no automático.`);
+  }
+  el.innerHTML = achados.length
+    ? achados.map(a=>`<div style="font-size:12.5px;line-height:1.6;padding:9px 11px;background:var(--gold-dim);border-radius:8px;border:1px solid rgba(244,185,66,.25)"><i class="ti ti-alert-triangle" style="color:var(--gold);margin-right:6px"></i>${a}</div>`).join('')
+    : '<div style="font-size:12.5px;color:var(--teal);padding:9px 11px;background:var(--teal-dim);border-radius:8px"><i class="ti ti-trending-up" style="margin-right:6px"></i>Nenhum sinal de platô nos últimos 30 dias — sua evolução está acompanhando o volume de treino.</div>';
+}
 function renderIA(ud){
   const t=ud.treinos||[];
+  detectarPlato(ud);
   if(!t.length){
     document.getElementById('ia-resumo').textContent='Registre treinos para receber análises personalizadas.';
     document.getElementById('ia-fortes').innerHTML='<div style="font-size:12px;color:var(--muted);padding:8px;background:var(--teal-dim);border-radius:8px">Dados insuficientes ainda.</div>';
@@ -2688,6 +2874,86 @@ function renderSocial(ud){
     </div>`;
   }
   renderChallenges(ud);
+  renderParceiros(ud);
+  populateDueloSelect(users);
+}
+function renderParceiros(ud){
+  const el=document.getElementById('parceiros-list');
+  if(!el) return;
+  const t=ud.treinos||[];
+  const grupos={};
+  t.forEach(tr=>{
+    const nome=(tr.parceiro||'').trim();
+    if(!nome) return;
+    const key=nome.toLowerCase();
+    if(!grupos[key]) grupos[key]={nome, count:0, ultima:tr.data};
+    grupos[key].count++;
+    if(new Date(tr.data)>new Date(grupos[key].ultima)) grupos[key].ultima=tr.data;
+  });
+  const lista=Object.values(grupos).sort((a,b)=>new Date(b.ultima)-new Date(a.ultima));
+  if(!lista.length){
+    el.innerHTML=`<div style="text-align:center;padding:18px;color:var(--muted);font-size:12.5px">Registre o "Parceiro" ao salvar um treino para acompanhar com quem você mais rola aqui.</div>`;
+    return;
+  }
+  el.innerHTML=lista.map(p=>{
+    const dias=Math.round((new Date()-new Date(p.ultima+'T12:00'))/86400000);
+    const alerta=dias>=14;
+    return `<div class="partner-item">
+      <div class="partner-av">${escapeHtml(initials(p.nome))}</div>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:13px">${escapeHtml(p.nome)}</div>
+        <div style="font-size:11.5px;color:${alerta?'var(--gold)':'var(--muted)'}">${p.count} treino(s) juntos · última vez: ${formatarDataRelativa(p.ultima)}${alerta?' · já faz um tempo!':''}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function populateDueloSelect(users){
+  const sel=document.getElementById('duelo-select');
+  if(!sel) return;
+  const atual=sel.value;
+  const outros=Object.keys(users).filter(e=>e!==CU);
+  sel.innerHTML='<option value="">Escolha um atleta para desafiar...</option>'+outros.map(email=>{
+    const udx=STORE.get('ud_'+email)||defaultUserData();
+    const nome=udx.profile.nome||users[email].nome||email;
+    return `<option value="${escapeHtml(email)}">${escapeHtml(nome)}</option>`;
+  }).join('');
+  if(outros.includes(atual)) sel.value=atual;
+}
+function renderDuelo(){
+  const box=document.getElementById('duelo-result');
+  const email=document.getElementById('duelo-select')?.value;
+  if(!box) return;
+  if(!email){ box.innerHTML=''; return; }
+  const meu=getUserData();
+  const dele=STORE.get('ud_'+email)||defaultUserData();
+  const users=getAllUsers();
+  const nomeDele=dele.profile.nome||users[email]?.nome||'Atleta';
+  const wk=weekKey();
+  const treinosSemanaMeus=(meu.treinos||[]).filter(t=>weekKeyOf(t.data)===wk).length;
+  const treinosSemanaDele=(dele.treinos||[]).filter(t=>weekKeyOf(t.data)===wk).length;
+  const streakMeu=calcStreak(meu.treinos||[]);
+  const streakDele=calcStreak(dele.treinos||[]);
+  const cor=(a,b)=>a>b?'var(--teal)':a<b?'var(--red)':'var(--muted)';
+  box.innerHTML=`
+    <div class="duelo-vs">
+      <div class="duelo-side">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Você</div>
+        <div class="duelo-stat" style="color:${cor(treinosSemanaMeus,treinosSemanaDele)}">${treinosSemanaMeus}</div>
+        <div style="font-size:10.5px;color:var(--muted)">treinos essa semana</div>
+      </div>
+      <div style="font-family:var(--font-d);font-size:13px;color:var(--muted)">VS</div>
+      <div class="duelo-side">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px">${escapeHtml(nomeDele)}</div>
+        <div class="duelo-stat" style="color:${cor(treinosSemanaDele,treinosSemanaMeus)}">${treinosSemanaDele}</div>
+        <div style="font-size:10.5px;color:var(--muted)">treinos essa semana</div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:12px;padding:9px 11px;background:var(--card2);border:1px solid var(--border);border-radius:9px;margin-bottom:7px">
+      <span>Streak atual</span><span><strong style="color:${cor(streakMeu,streakDele)}">${streakMeu}</strong> x <strong style="color:${cor(streakDele,streakMeu)}">${streakDele}</strong> dias</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:12px;padding:9px 11px;background:var(--card2);border:1px solid var(--border);border-radius:9px">
+      <span>XP total</span><span><strong style="color:${cor(meu.xp||0,dele.xp||0)}">${meu.xp||0}</strong> x <strong style="color:${cor(dele.xp||0,meu.xp||0)}">${dele.xp||0}</strong></span>
+    </div>`;
 }
 function weekKey(){
   const d=new Date(); const onejan=new Date(d.getFullYear(),0,1);
@@ -3099,6 +3365,7 @@ function renderTreinosList(ud){
       <div class="rec-meta">
         ${dur?`<div class="rec-dur">${dur}</div>`:''}
         <div style="display:flex;gap:6px;margin-top:5px">
+          <button class="btn-sm" style="padding:5px 8px;border-color:rgba(31,200,180,.3);color:var(--teal)" onclick="event.stopPropagation();exportTreinoCard(${tr.id})" aria-label="Compartilhar treino"><i class="ti ti-share" style="font-size:13px"></i></button>
           <button class="btn-sm" style="padding:5px 8px" onclick="event.stopPropagation();openEditTreino(${tr.id})" aria-label="Editar treino"><i class="ti ti-edit" style="font-size:13px"></i></button>
           <button class="btn-sm" style="padding:5px 8px;border-color:var(--border2);color:var(--red)" onclick="event.stopPropagation();deleteTreino(${tr.id})" aria-label="Excluir treino"><i class="ti ti-trash" style="font-size:13px"></i></button>
         </div>
@@ -3271,6 +3538,107 @@ function exportCartaoAtleta(){
     const a=document.createElement('a'); a.href=url; a.download=`cartao_atleta_${(ud.profile.nome||'atleta').replace(/\s+/g,'_')}.png`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
     toast('Cartão de atleta exportado!');
+  },'image/png');
+}
+
+function exportTreinoCard(id){
+  const ud=getUserData();
+  const tr=(ud.treinos||[]).find(x=>x.id===id);
+  if(!tr) return;
+  const s=tr.stats||{};
+  const saldo=s.saldoBJJ ?? calcSaldoBJJ(s);
+  const tiposLabel={tecnica:'Técnica',sparring:'Sparring',competicao:'Competição',fisico:'Prep. Física'};
+  const dataFmt=new Date(tr.data+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+  const dur=tr.duracaoMin?formatMin(tr.duracaoMin):(tr.inicio&&tr.fim?tr.inicio+'–'+tr.fim:'');
+
+  const W=1080,H=1350;
+  const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+  const ctx=cv.getContext('2d');
+
+  const bg=ctx.createLinearGradient(0,0,W,H);
+  bg.addColorStop(0,'#1A0D0D'); bg.addColorStop(1,'#0E0A0A');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+  const glow=ctx.createRadialGradient(W*0.2,H*0.05,10,W*0.2,H*0.05,W*0.6);
+  glow.addColorStop(0,'rgba(255,255,255,.06)'); glow.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=glow; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(215,38,56,.4)'; ctx.lineWidth=3;
+  ctx.strokeRect(24,24,W-48,H-48);
+
+  ctx.fillStyle='#D72638'; ctx.font='800 42px Arial';
+  ctx.fillText('LIFE JIU', 60, 108);
+  ctx.fillStyle='rgba(245,239,239,.5)'; ctx.font='400 20px Arial';
+  ctx.fillText('Registro de Treino', 60, 142);
+
+  ctx.fillStyle='#fff'; ctx.font='800 54px Arial';
+  ctx.fillText(tiposLabel[tr.tipo]||tr.tipo, 60, 250);
+  ctx.fillStyle='#F2B705'; ctx.font='600 26px Arial';
+  ctx.fillText(dataFmt, 60, 290);
+  if(ud.profile.nome){
+    ctx.fillStyle='rgba(245,239,239,.5)'; ctx.font='400 22px Arial';
+    ctx.fillText(ud.profile.nome+(ud.profile.faixa?' · Faixa '+ud.profile.faixa:''), 60, 326);
+  }
+
+  ctx.strokeStyle='rgba(215,38,56,.2)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(60,370); ctx.lineTo(W-60,370); ctx.stroke();
+
+  const stats=[
+    {label:'Duração',value:dur||'—',sub:'tempo de treino',cor:'#fff'},
+    {label:'Intensidade',value:`${tr.intensidade}/10`,sub:'esforço percebido',cor:'#F2B705'},
+    {label:'Finalizações',value:`${s.finAp||0}`,sub:'aplicadas',cor:'#1FC8B4'},
+    {label:'Saldo',value:`${saldo>0?'+':''}${saldo}`,sub:'pontos oficiais',cor:saldo>0?'#1FC8B4':saldo<0?'#D72638':'#fff'},
+  ];
+  const colW=(W-120)/4;
+  stats.forEach((s2,i)=>{
+    const x=60+colW*i;
+    ctx.fillStyle=s2.cor; ctx.font='800 48px Arial';
+    ctx.fillText(s2.value, x, 460);
+    ctx.fillStyle='rgba(245,239,239,.45)'; ctx.font='400 18px Arial';
+    ctx.fillText(s2.label, x, 492);
+    ctx.fillStyle='rgba(245,239,239,.3)'; ctx.font='400 15px Arial';
+    ctx.fillText(s2.sub, x, 513);
+  });
+
+  ctx.strokeStyle='rgba(215,38,56,.2)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(60,555); ctx.lineTo(W-60,555); ctx.stroke();
+
+  let y=610;
+  const allSubs=[...(tr.subsAp||[]).map(x=>'✓ '+x), ...(tr.subsSf||[]).map(x=>'✗ '+x)];
+  if(allSubs.length){
+    ctx.fillStyle='rgba(245,239,239,.5)'; ctx.font='400 20px Arial';
+    ctx.fillText('FINALIZAÇÕES DO DIA', 60, y); y+=42;
+    ctx.font='600 26px Arial';
+    allSubs.slice(0,8).forEach(txt=>{
+      ctx.fillStyle=txt.startsWith('✓')?'#1FC8B4':'#D72638';
+      ctx.fillText(txt, 60, y); y+=40;
+    });
+    y+=20;
+  }
+  if(tr.parceiro){
+    ctx.fillStyle='rgba(245,239,239,.5)'; ctx.font='400 20px Arial';
+    ctx.fillText('COM', 60, y); y+=36;
+    ctx.fillStyle='#fff'; ctx.font='700 32px Arial';
+    ctx.fillText(tr.parceiro, 60, y); y+=40;
+  }
+  if(tr.obs){
+    ctx.fillStyle='rgba(245,239,239,.6)'; ctx.font='italic 400 22px Arial';
+    const maxW=W-120;
+    const words=tr.obs.split(' '); let line=''; const lines=[];
+    words.forEach(w=>{
+      const test=line+w+' ';
+      if(ctx.measureText(test).width>maxW && line){ lines.push(line); line=w+' '; } else line=test;
+    });
+    if(line) lines.push(line);
+    lines.slice(0,4).forEach(l=>{ ctx.fillText('"'+l.trim()+'"', 60, y); y+=32; });
+  }
+
+  ctx.fillStyle='rgba(245,239,239,.3)'; ctx.font='400 18px Arial';
+  ctx.fillText(`Gerado em ${new Date().toLocaleDateString('pt-BR')} · lifejiu.app`, 60, H-50);
+
+  cv.toBlob(blob=>{
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download=`treino_${tr.data}.png`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    toast('Card do treino exportado!');
   },'image/png');
 }
 
