@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Life-Jiu</title>
+<title>Life Jiu</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.3.0/dist/tabler-icons.min.css">
@@ -1852,10 +1852,17 @@ function switchAuthTab(t){
 }
 function showAuthError(id, msg){ const e=document.getElementById(id); e.textContent=msg; e.classList.add('show') }
 function clearAuthErrors(){ document.querySelectorAll('.auth-error').forEach(e=>{e.classList.remove('show');e.textContent=''}) }
-async function hashPass(pass, salt){
+const PBKDF2_ITER=150000;
+async function hashPassLegacySha256(pass, salt){
   const enc = new TextEncoder().encode(salt+':'+pass);
   const buf = await crypto.subtle.digest('SHA-256', enc);
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function hashPass(pass, salt, iterations=PBKDF2_ITER){
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(pass), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits({name:'PBKDF2', salt:enc.encode(salt), iterations, hash:'SHA-256'}, keyMaterial, 256);
+  return Array.from(new Uint8Array(bits)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
 function genSalt(){ return Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b=>b.toString(16).padStart(2,'0')).join('') }
 async function doLogin(){
@@ -1867,8 +1874,17 @@ async function doLogin(){
   const u = users[email];
   if(!u){ showAuthError('login-error','E-mail ou senha incorretos.'); return }
   let ok=false;
-  if(u.salt){ ok = (await hashPass(pass,u.salt))===u.pass }
-  else { ok = u.pass===btoa(pass); if(ok){ const salt=genSalt(); u.salt=salt; u.pass=await hashPass(pass,salt); saveUsers(users); } }
+  if(u.salt && u.algo==='pbkdf2'){
+    ok = (await hashPass(pass,u.salt,u.iter||PBKDF2_ITER))===u.pass;
+  } else if(u.salt){
+    // conta antiga (SHA-256 + salt) — valida e faz upgrade silencioso pra PBKDF2
+    ok = (await hashPassLegacySha256(pass,u.salt))===u.pass;
+    if(ok){ u.iter=PBKDF2_ITER; u.algo='pbkdf2'; u.pass=await hashPass(pass,u.salt,u.iter); saveUsers(users); }
+  } else {
+    // conta muito antiga (btoa) — valida e faz upgrade pra PBKDF2
+    ok = u.pass===btoa(pass);
+    if(ok){ const salt=genSalt(); const iter=PBKDF2_ITER; u.salt=salt; u.iter=iter; u.algo='pbkdf2'; u.pass=await hashPass(pass,salt,iter); saveUsers(users); }
+  }
   if(!ok){ showAuthError('login-error','E-mail ou senha incorretos.'); return }
   CU = email;
   STORE.set('session', email);
@@ -1887,7 +1903,7 @@ async function doRegister(){
   const users = getAllUsers();
   if(users[email]){ showAuthError('reg-error','Este e-mail já está cadastrado.'); return }
   const salt=genSalt();
-  users[email] = { pass: await hashPass(pass,salt), salt, nome };
+  users[email] = { pass: await hashPass(pass,salt,PBKDF2_ITER), salt, iter:PBKDF2_ITER, algo:'pbkdf2', nome };
   saveUsers(users);
   CU = email;
   STORE.set('session', email);
@@ -2116,7 +2132,7 @@ function renderDashboard(ud){
       const date=new Date(t.data+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short'});
       return `<div class="rec-item">
         <div class="rec-icon ${cls}"><i class="ti ${ic}"></i></div>
-        <div class="rec-info"><strong>${t.tipo.charAt(0).toUpperCase()+t.tipo.slice(1)}</strong><span>${date}${t.parceiro?' · com '+t.parceiro:''}</span></div>
+        <div class="rec-info"><strong>${t.tipo.charAt(0).toUpperCase()+t.tipo.slice(1)}</strong><span>${date}${t.parceiro?' · com '+escapeHtml(t.parceiro):''}</span></div>
         <div class="rec-meta"><div class="rec-dur">${formatH(mins)}</div><div class="rec-int">Int. ${t.intensidade}/10</div></div>
       </div>`;
     }).join('');
@@ -2849,13 +2865,45 @@ function renderIA(ud){
       <div class="ai-text"><strong>${r.title}</strong><p>${r.desc}</p></div>
     </div>`).join('');
 }
-function renderSocial(ud){
+// Cache de dados de outros usuários vindos do Supabase (email -> payload).
+// Sem isso, ranking/duelo só enxergavam contas criadas no mesmo navegador.
+let remoteDirCache = {};
+async function fetchRemoteDirectory(){
+  const client=getClient();
+  if(!client) return null;
+  try{
+    const { data, error } = await client.from('lifejiu_sync').select('id,payload,updated_at');
+    if(error) throw error;
+    return data||[];
+  }catch(err){
+    console.error('Erro ao buscar diretório remoto do Supabase:', err);
+    return null;
+  }
+}
+function getUserDataFor(email){
+  if(email===CU) return getUserData();
+  if(remoteDirCache[email]) return remoteDirCache[email];
+  return STORE.get('ud_'+email) || defaultUserData();
+}
+async function renderSocial(ud){
+  // Se o Supabase estiver configurado, busca os dados de todo mundo que já
+  // deu sync — assim o ranking e o duelo funcionam entre aparelhos diferentes,
+  // não só entre contas criadas no mesmo navegador.
+  if(getClient()){
+    const remote = await fetchRemoteDirectory();
+    if(remote){
+      const novoCache={};
+      remote.forEach(r=>{ if(r.id) novoCache[r.id]=r.payload; });
+      remoteDirCache=novoCache;
+    }
+  }
   const users = getAllUsers();
+  const emails = Array.from(new Set([...Object.keys(users), ...Object.keys(remoteDirCache), CU]));
   const minhaAcademia = (ud.profile.academia||'').trim().toLowerCase();
   const soAcademia = document.getElementById('rank-filter-academia')?.checked;
-  let entries = Object.keys(users).map(email=>{
-    const udx = STORE.get('ud_'+email) || defaultUserData();
-    return { email, nome: udx.profile.nome||users[email].nome||'Atleta', academia: udx.profile.academia||'', faixa: udx.profile.faixa||'Branca', xp: udx.xp||0 };
+  let entries = emails.map(email=>{
+    const udx = getUserDataFor(email);
+    return { email, nome: udx.profile?.nome||users[email]?.nome||'Atleta', academia: udx.profile?.academia||'', faixa: udx.profile?.faixa||'Branca', xp: udx.xp||0 };
   });
   if(soAcademia && minhaAcademia) entries = entries.filter(e=>(e.academia||'').trim().toLowerCase()===minhaAcademia);
   entries.sort((a,b)=>b.xp-a.xp);
@@ -2870,12 +2918,12 @@ function renderSocial(ud){
   if(entries.length<=1){
     document.getElementById('rank-list').innerHTML += `
     <div style="padding:12px 14px;margin-top:8px;text-align:center;font-size:12px;color:var(--muted);border:1px dashed var(--border);border-radius:var(--radius-sm)">
-      Convide seus parceiros de academia a criar uma conta neste app para entrarem no ranking com você!
+      ${getClient()?'Convide seus parceiros de academia a criar uma conta e sincronizar com o Supabase para entrarem no ranking com você!':'Convide seus parceiros de academia a criar uma conta neste app para entrarem no ranking com você! Configure o Supabase em Ajustes para o ranking funcionar entre aparelhos diferentes.'}
     </div>`;
   }
   renderChallenges(ud);
   renderParceiros(ud);
-  populateDueloSelect(users);
+  populateDueloSelect(emails);
 }
 function renderParceiros(ud){
   const el=document.getElementById('parceiros-list');
@@ -2907,14 +2955,15 @@ function renderParceiros(ud){
     </div>`;
   }).join('');
 }
-function populateDueloSelect(users){
+function populateDueloSelect(emails){
   const sel=document.getElementById('duelo-select');
   if(!sel) return;
   const atual=sel.value;
-  const outros=Object.keys(users).filter(e=>e!==CU);
+  const users=getAllUsers();
+  const outros=emails.filter(e=>e!==CU);
   sel.innerHTML='<option value="">Escolha um atleta para desafiar...</option>'+outros.map(email=>{
-    const udx=STORE.get('ud_'+email)||defaultUserData();
-    const nome=udx.profile.nome||users[email].nome||email;
+    const udx=getUserDataFor(email);
+    const nome=udx.profile?.nome||users[email]?.nome||email;
     return `<option value="${escapeHtml(email)}">${escapeHtml(nome)}</option>`;
   }).join('');
   if(outros.includes(atual)) sel.value=atual;
@@ -2925,9 +2974,9 @@ function renderDuelo(){
   if(!box) return;
   if(!email){ box.innerHTML=''; return; }
   const meu=getUserData();
-  const dele=STORE.get('ud_'+email)||defaultUserData();
+  const dele=getUserDataFor(email);
   const users=getAllUsers();
-  const nomeDele=dele.profile.nome||users[email]?.nome||'Atleta';
+  const nomeDele=dele.profile?.nome||users[email]?.nome||'Atleta';
   const wk=weekKey();
   const treinosSemanaMeus=(meu.treinos||[]).filter(t=>weekKeyOf(t.data)===wk).length;
   const treinosSemanaDele=(dele.treinos||[]).filter(t=>weekKeyOf(t.data)===wk).length;
@@ -3360,7 +3409,7 @@ function renderTreinosList(ud){
       <div class="rec-icon ${tiposClasse[tr.tipo]||'ri-tec'}"><i class="ti ${tiposIcon[tr.tipo]||'ti-atom'}"></i></div>
       <div class="rec-info">
         <strong>${formatarDataRelativa(tr.data)} · ${tiposLabel[tr.tipo]||tr.tipo}</strong>
-        <span>Intensidade ${tr.intensidade}/10 · Fin. ${tr.stats?.finAp||0}/${tr.stats?.finSf||0} · Saldo <span style="color:${saldoCor};font-weight:600">${saldo>0?'+':''}${saldo}</span>${tr.parceiro?' · com '+tr.parceiro:''}</span>
+        <span>Intensidade ${tr.intensidade}/10 · Fin. ${tr.stats?.finAp||0}/${tr.stats?.finSf||0} · Saldo <span style="color:${saldoCor};font-weight:600">${saldo>0?'+':''}${saldo}</span>${tr.parceiro?' · com '+escapeHtml(tr.parceiro):''}</span>
       </div>
       <div class="rec-meta">
         ${dur?`<div class="rec-dur">${dur}</div>`:''}
@@ -3404,7 +3453,6 @@ function openEditTreino(id){
   document.getElementById('et-obs').value=tr.obs||'';
   openModal('modal-treino');
 }
-function evv(id){ return parseInt(document.getElementById(id).value)||0 }
 function saveEditTreino(){
   const ud=getUserData();
   const tr=(ud.treinos||[]).find(t=>t.id===editingTreinoId);
@@ -3413,18 +3461,18 @@ function saveEditTreino(){
   tr.tipo=document.getElementById('et-tipo').value;
   tr.intensidade=parseInt(document.getElementById('et-intensidade').value)||tr.intensidade;
   tr.stats=tr.stats||{};
-  tr.stats.finAp=evv('et-finap');
-  tr.stats.finSf=evv('et-finsf');
-  tr.stats.quedas=evv('et-quedas');
-  tr.stats.quedasSf=evv('et-quedas-sf');
-  tr.stats.guard=evv('et-guard');
-  tr.stats.guardSf=evv('et-guard-sf');
-  tr.stats.rasp=evv('et-rasp');
-  tr.stats.raspSf=evv('et-rasp-sf');
-  tr.stats.montada=evv('et-montada');
-  tr.stats.montadaSf=evv('et-montada-sf');
-  tr.stats.costas=evv('et-costas');
-  tr.stats.costasSf=evv('et-costas-sf');
+  tr.stats.finAp=gv('et-finap');
+  tr.stats.finSf=gv('et-finsf');
+  tr.stats.quedas=gv('et-quedas');
+  tr.stats.quedasSf=gv('et-quedas-sf');
+  tr.stats.guard=gv('et-guard');
+  tr.stats.guardSf=gv('et-guard-sf');
+  tr.stats.rasp=gv('et-rasp');
+  tr.stats.raspSf=gv('et-rasp-sf');
+  tr.stats.montada=gv('et-montada');
+  tr.stats.montadaSf=gv('et-montada-sf');
+  tr.stats.costas=gv('et-costas');
+  tr.stats.costasSf=gv('et-costas-sf');
   tr.stats.saldoBJJ=calcSaldoBJJ(tr.stats);
   tr.parceiro=document.getElementById('et-parceiro').value.trim();
   tr.obs=document.getElementById('et-obs').value.trim();
