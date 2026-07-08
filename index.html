@@ -1146,6 +1146,15 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
       <div class="topbar">
         <div class="topbar-left"><h1>Registrar Treino</h1><p>Documente cada sessão para evoluir</p></div>
       </div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-title">Narrar Treino <span class="card-badge badge-gold">IA local</span></div>
+        <p style="font-size:11px;color:var(--muted);margin:0 0 10px;line-height:1.5">Fale sobre o treino e a IA preenche o formulário abaixo. Roda no seu navegador, nada é enviado a servidor nenhum.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <button class="btn-sm" id="narracao-btn" onclick="toggleNarracao()"><i class="ti ti-microphone" style="font-size:13px"></i> Iniciar narração</button>
+          <span id="narracao-status" style="font-size:11px;color:var(--muted)"></span>
+        </div>
+        <p id="narracao-preview" style="font-size:12.5px;color:var(--muted);margin-top:10px;display:none;background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:10px;line-height:1.5"></p>
+      </div>
       <div class="g2e">
         <div class="card">
           <div class="card-title">Informações Básicas</div>
@@ -1614,10 +1623,16 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         </p>
         <div id="sync-setup-help" style="font-size:11px;color:var(--muted);background:var(--card2);border:1px dashed var(--border2);border-radius:9px;padding:10px;margin-bottom:10px">
           <strong>Como configurar (uma vez só):</strong> crie um projeto grátis em supabase.com → vá em SQL Editor e execute:
-          <code style="display:block;background:rgba(0,0,0,.3);padding:8px;border-radius:6px;margin:6px 0;white-space:pre-wrap;font-size:10.5px">create table lifejiu_sync (id text primary key, payload jsonb, updated_at timestamptz default now());
+          <code style="display:block;background:rgba(0,0,0,.3);padding:8px;border-radius:6px;margin:6px 0;white-space:pre-wrap;font-size:10.5px">-- tabela de backup completo (só sua conta usa; guarda peso, notas, histórico etc.)
+create table lifejiu_sync (id text primary key, payload jsonb, updated_at timestamptz default now());
 alter table lifejiu_sync enable row level security;
-create policy "allow all" on lifejiu_sync for all using (true);</code>
-          Depois cole a URL do projeto e a chave "anon public" abaixo (em Project Settings → API).
+create policy "allow all sync" on lifejiu_sync for all using (true) with check (true);
+
+-- tabela pública só com o que aparece no ranking/duelo (nunca peso, notas ou treinos detalhados)
+create table lifejiu_public_stats (id text primary key, nome text, faixa text, academia text, xp int default 0, streak int default 0, treinos_semana int default 0, updated_at timestamptz default now());
+alter table lifejiu_public_stats enable row level security;
+create policy "allow all stats" on lifejiu_public_stats for all using (true) with check (true);</code>
+          Depois cole a URL do projeto e a chave "anon public" abaixo (em Project Settings → API). <strong>Importante:</strong> essa chave funciona tipo uma senha de grupo — compartilhe só com quem você confia (seus parceiros de treino), porque quem tiver a chave consegue ler e escrever nessas tabelas.
         </div>
         <div class="fg"><label class="fl">Supabase URL</label><input type="text" id="supa-url-input" class="fi" placeholder="https://xxxx.supabase.co"></div>
         <div class="fg"><label class="fl">Supabase anon key</label><input type="password" id="supa-key-input" class="fi" placeholder="eyJ..."></div>
@@ -2865,14 +2880,16 @@ function renderIA(ud){
       <div class="ai-text"><strong>${r.title}</strong><p>${r.desc}</p></div>
     </div>`).join('');
 }
-// Cache de dados de outros usuários vindos do Supabase (email -> payload).
-// Sem isso, ranking/duelo só enxergavam contas criadas no mesmo navegador.
+// Cache de STATS PÚBLICAS de outros usuários vindas do Supabase (email -> {nome,faixa,academia,xp,streak,treinosSemana}).
+// IMPORTANTE: isso nunca traz o payload completo de outra conta (peso, notas do professor,
+// treinos detalhados etc.) — só os campos necessários pro ranking e pro duelo, lidos da tabela
+// lifejiu_public_stats. O backup completo (lifejiu_sync) só é lido/escrito para a própria conta.
 let remoteDirCache = {};
 async function fetchRemoteDirectory(){
   const client=getClient();
   if(!client) return null;
   try{
-    const { data, error } = await client.from('lifejiu_sync').select('id,payload,updated_at');
+    const { data, error } = await client.from('lifejiu_public_stats').select('id,nome,faixa,academia,xp,streak,treinos_semana,updated_at');
     if(error) throw error;
     return data||[];
   }catch(err){
@@ -2880,20 +2897,38 @@ async function fetchRemoteDirectory(){
     return null;
   }
 }
-function getUserDataFor(email){
-  if(email===CU) return getUserData();
+// Calcula as stats "públicas" (as únicas que trafegam pra fora da própria conta) a partir do payload completo.
+function computeUserStats(ud){
+  const wk=weekKey();
+  return {
+    nome: ud.profile?.nome||'',
+    faixa: ud.profile?.faixa||'Branca',
+    academia: ud.profile?.academia||'',
+    xp: ud.xp||0,
+    streak: calcStreak(ud.treinos||[]),
+    treinosSemana: (ud.treinos||[]).filter(t=>weekKeyOf(t.data)===wk).length
+  };
+}
+// Retorna sempre o formato leve {nome,faixa,academia,xp,streak,treinosSemana} — pra própria conta
+// calcula na hora a partir dos dados completos locais; pra outras contas usa só o que veio das
+// stats públicas (Supabase) ou, na ausência de sync, os dados locais de outra conta no mesmo navegador.
+function getStatsFor(email){
+  if(email===CU) return computeUserStats(getUserData());
   if(remoteDirCache[email]) return remoteDirCache[email];
-  return STORE.get('ud_'+email) || defaultUserData();
+  const local = STORE.get('ud_'+email);
+  if(local) return computeUserStats(local);
+  const users=getAllUsers();
+  return { nome: users[email]?.nome||'Atleta', faixa:'Branca', academia:'', xp:0, streak:0, treinosSemana:0 };
 }
 async function renderSocial(ud){
-  // Se o Supabase estiver configurado, busca os dados de todo mundo que já
-  // deu sync — assim o ranking e o duelo funcionam entre aparelhos diferentes,
-  // não só entre contas criadas no mesmo navegador.
+  // Se o Supabase estiver configurado, busca as stats públicas de todo mundo que já deu
+  // sync — assim o ranking e o duelo funcionam entre aparelhos diferentes, sem precisar
+  // trazer o backup completo (privado) de ninguém além da própria conta.
   if(getClient()){
     const remote = await fetchRemoteDirectory();
     if(remote){
       const novoCache={};
-      remote.forEach(r=>{ if(r.id) novoCache[r.id]=r.payload; });
+      remote.forEach(r=>{ if(r.id) novoCache[r.id]={ nome:r.nome||'Atleta', faixa:r.faixa||'Branca', academia:r.academia||'', xp:r.xp||0, streak:r.streak||0, treinosSemana:r.treinos_semana||0 }; });
       remoteDirCache=novoCache;
     }
   }
@@ -2902,8 +2937,8 @@ async function renderSocial(ud){
   const minhaAcademia = (ud.profile.academia||'').trim().toLowerCase();
   const soAcademia = document.getElementById('rank-filter-academia')?.checked;
   let entries = emails.map(email=>{
-    const udx = getUserDataFor(email);
-    return { email, nome: udx.profile?.nome||users[email]?.nome||'Atleta', academia: udx.profile?.academia||'', faixa: udx.profile?.faixa||'Branca', xp: udx.xp||0 };
+    const s = getStatsFor(email);
+    return { email, nome: s.nome||users[email]?.nome||'Atleta', academia: s.academia||'', faixa: s.faixa||'Branca', xp: s.xp||0 };
   });
   if(soAcademia && minhaAcademia) entries = entries.filter(e=>(e.academia||'').trim().toLowerCase()===minhaAcademia);
   entries.sort((a,b)=>b.xp-a.xp);
@@ -2962,8 +2997,8 @@ function populateDueloSelect(emails){
   const users=getAllUsers();
   const outros=emails.filter(e=>e!==CU);
   sel.innerHTML='<option value="">Escolha um atleta para desafiar...</option>'+outros.map(email=>{
-    const udx=getUserDataFor(email);
-    const nome=udx.profile?.nome||users[email]?.nome||email;
+    const s=getStatsFor(email);
+    const nome=s.nome||users[email]?.nome||email;
     return `<option value="${escapeHtml(email)}">${escapeHtml(nome)}</option>`;
   }).join('');
   if(outros.includes(atual)) sel.value=atual;
@@ -2973,15 +3008,13 @@ function renderDuelo(){
   const email=document.getElementById('duelo-select')?.value;
   if(!box) return;
   if(!email){ box.innerHTML=''; return; }
-  const meu=getUserData();
-  const dele=getUserDataFor(email);
-  const users=getAllUsers();
-  const nomeDele=dele.profile?.nome||users[email]?.nome||'Atleta';
-  const wk=weekKey();
-  const treinosSemanaMeus=(meu.treinos||[]).filter(t=>weekKeyOf(t.data)===wk).length;
-  const treinosSemanaDele=(dele.treinos||[]).filter(t=>weekKeyOf(t.data)===wk).length;
-  const streakMeu=calcStreak(meu.treinos||[]);
-  const streakDele=calcStreak(dele.treinos||[]);
+  const meu=computeUserStats(getUserData());
+  const dele=getStatsFor(email);
+  const nomeDele=dele.nome||'Atleta';
+  const treinosSemanaMeus=meu.treinosSemana;
+  const treinosSemanaDele=dele.treinosSemana;
+  const streakMeu=meu.streak;
+  const streakDele=dele.streak;
   const cor=(a,b)=>a>b?'var(--teal)':a<b?'var(--red)':'var(--muted)';
   box.innerHTML=`
     <div class="duelo-vs">
@@ -3752,7 +3785,7 @@ async function loadLocalAI(){
 window.gerarAnaliseIA = async function(){
   const ud = window.getUserData();
   const t = ud.treinos||[];
-  if(t.length<2) window.toast('Registre pelo menos 2 treinos para uma análise melhor.','error');
+  if(t.length<2){ window.toast('Registre pelo menos 2 treinos para uma análise melhor.','error'); return; }
 
   const btn = document.getElementById('ia-real-btn');
   const resultBox = document.getElementById('ia-real-result');
@@ -3790,6 +3823,203 @@ window.gerarAnaliseIA = async function(){
     btn.innerHTML = '<i class="ti ti-sparkles"></i> Carregar e gerar análise';
   }
 };
+
+function getSpeechRecognitionCtor(){
+  return window.SpeechRecognition || window.webkitSpeechRecognition || null;
+}
+
+let recognitionAtivo = null;
+let transcricaoAcumulada = '';
+let narracaoLigada = false;
+
+function buildExtractPrompt(transcricao){
+  return `Você recebe o relato falado de um treino de Jiu-Jitsu e devolve APENAS um objeto JSON, sem texto antes ou depois, sem markdown.
+
+Campos do JSON:
+tipo: "tecnica", "sparring", "competicao" ou "fisico"
+intensidade: numero de 1 a 10
+parceiro: nome do parceiro de treino ou ""
+obs: resumo curto do relato em uma frase
+notaProfPos: uma destas opcoes ou "": "Guarda Fechada","Meia Guarda","Montada","Costas","50/50","Guarda Aberta","Queda","Passagem","Raspagem"
+notaProf: o que o professor corrigiu, ou ""
+finAp: quantas finalizacoes o atleta aplicou
+finSf: quantas finalizacoes o atleta sofreu
+quedas: quedas aplicadas
+quedasSf: quedas sofridas
+guard: passagens de guarda aplicadas
+guardSf: passagens de guarda sofridas
+rasp: raspagens aplicadas
+raspSf: raspagens sofridas
+montada: montadas aplicadas
+montadaSf: montadas sofridas
+costas: pegadas de costas aplicadas
+costasSf: pegadas de costas sofridas
+submissoesAp: lista com o nome de cada finalizacao aplicada
+submissoesSf: lista com o nome de cada finalizacao sofrida
+
+Exemplo de relato: "hoje foi treino de sparring, rolei bem, apliquei um triangulo e uma kimura, mas apanhei de mata leao, professor corrigiu minha postura na guarda fechada"
+Exemplo de resposta: {"tipo":"sparring","intensidade":7,"parceiro":"","obs":"treino de sparring com boa performance","notaProfPos":"Guarda Fechada","notaProf":"postura na guarda fechada","finAp":2,"finSf":1,"quedas":0,"quedasSf":0,"guard":0,"guardSf":0,"rasp":0,"raspSf":0,"montada":0,"montadaSf":0,"costas":0,"costasSf":0,"submissoesAp":["Triangulo","Kimura"],"submissoesSf":["Mata Leao"]}
+
+Relato: "${transcricao}"
+Resposta:`;
+}
+
+function setScoreVal(id, v){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const n = Math.max(0, Math.min(99, parseInt(v) || 0));
+  el.value = n;
+}
+
+function aplicarTipoNarrado(t){
+  const ordem = ['tecnica','sparring','competicao','fisico'];
+  if(!ordem.includes(t)) return;
+  const btns = document.querySelectorAll('#screen-registro .type-btn');
+  const idx = ordem.indexOf(t);
+  if(btns[idx]) window.selectType(btns[idx], t);
+}
+
+function aplicarSubmissoesNarradas(lista, which){
+  const inputId = which === 'ap' ? 'sub-tag-ap-input' : 'sub-tag-sf-input';
+  const inp = document.getElementById(inputId);
+  if(!inp) return;
+  (lista || []).forEach(nome=>{
+    if(!nome) return;
+    inp.value = nome;
+    window.addSubTag(which);
+  });
+}
+
+function aplicarDadosNarrados(dados){
+  if(dados.tipo) aplicarTipoNarrado(dados.tipo);
+  if(typeof dados.intensidade === 'number'){
+    const n = Math.max(1, Math.min(10, Math.round(dados.intensidade)));
+    document.getElementById('intRange').value = n;
+    window.updateIntColor(n);
+  }
+  if(dados.parceiro) document.getElementById('reg-parceiro').value = dados.parceiro;
+  if(dados.obs) document.getElementById('reg-obs').value = dados.obs;
+  if(dados.notaProf) document.getElementById('reg-nota-prof').value = dados.notaProf;
+  if(dados.notaProfPos){
+    const sel = document.getElementById('reg-nota-pos');
+    const opt = Array.from(sel.options).find(o=>o.value === dados.notaProfPos);
+    if(opt) sel.value = dados.notaProfPos;
+  }
+  setScoreVal('r-fin-ap', dados.finAp);
+  setScoreVal('r-fin-sf', dados.finSf);
+  setScoreVal('r-quedas', dados.quedas);
+  setScoreVal('r-quedas-sf', dados.quedasSf);
+  setScoreVal('r-guard', dados.guard);
+  setScoreVal('r-guard-sf', dados.guardSf);
+  setScoreVal('r-rasp', dados.rasp);
+  setScoreVal('r-rasp-sf', dados.raspSf);
+  setScoreVal('r-montada', dados.montada);
+  setScoreVal('r-montada-sf', dados.montadaSf);
+  setScoreVal('r-costas', dados.costas);
+  setScoreVal('r-costas-sf', dados.costasSf);
+  aplicarSubmissoesNarradas(dados.submissoesAp, 'ap');
+  aplicarSubmissoesNarradas(dados.submissoesSf, 'sf');
+  window.updateSaldoPreview();
+}
+
+function iniciarNarracao(){
+  const SR = getSpeechRecognitionCtor();
+  const btn = document.getElementById('narracao-btn');
+  const status = document.getElementById('narracao-status');
+  const preview = document.getElementById('narracao-preview');
+  if(!SR){
+    window.toast('Reconhecimento de voz não suportado neste navegador. Use Chrome ou Edge.','error');
+    return;
+  }
+  transcricaoAcumulada = '';
+  preview.style.display = 'block';
+  preview.textContent = '';
+  status.textContent = 'Ouvindo...';
+  btn.innerHTML = '<i class="ti ti-player-stop" style="font-size:13px"></i> Parar e preencher';
+  btn.style.background = 'var(--red-dim)';
+  btn.style.borderColor = 'var(--red)';
+  btn.style.color = 'var(--red)';
+
+  const rec = new SR();
+  rec.lang = 'pt-BR';
+  rec.continuous = true;
+  rec.interimResults = true;
+  rec.onresult = (e)=>{
+    let interim = '';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const t = e.results[i][0].transcript;
+      if(e.results[i].isFinal) transcricaoAcumulada += t + ' ';
+      else interim += t;
+    }
+    preview.textContent = transcricaoAcumulada + interim;
+  };
+  rec.onerror = (e)=>{
+    window.toast('Erro no microfone: '+e.error,'error');
+    pararNarracao(false);
+  };
+  rec.onend = ()=>{
+    if(narracaoLigada) rec.start();
+  };
+  narracaoLigada = true;
+  recognitionAtivo = rec;
+  rec.start();
+}
+
+async function pararNarracao(processar){
+  narracaoLigada = false;
+  if(recognitionAtivo) recognitionAtivo.stop();
+  recognitionAtivo = null;
+  const btn = document.getElementById('narracao-btn');
+  const status = document.getElementById('narracao-status');
+  btn.innerHTML = '<i class="ti ti-microphone" style="font-size:13px"></i> Iniciar narração';
+  btn.style.background = '';
+  btn.style.borderColor = '';
+  btn.style.color = '';
+  if(!processar || !transcricaoAcumulada.trim()){
+    status.textContent = '';
+    return;
+  }
+  status.textContent = 'Processando com IA local...';
+  btn.disabled = true;
+  try{
+    const gen = await loadLocalAI();
+    const prompt = buildExtractPrompt(transcricaoAcumulada.trim());
+    const output = await gen([{ role:'user', content: prompt }], { max_new_tokens: 260, temperature: 0.2, do_sample: false });
+    const last = Array.isArray(output) ? output[0] : output;
+    const genText = last?.generated_text;
+    let texto = '';
+    if(Array.isArray(genText)){
+      const lastMsg = genText[genText.length-1];
+      texto = (lastMsg?.content || '').trim();
+    } else if(typeof genText === 'string'){
+      texto = genText.replace(prompt,'').trim();
+    }
+    const match = texto.match(/\{[\s\S]*\}/);
+    if(!match) throw new Error('resposta sem JSON válido');
+    const dados = JSON.parse(match[0]);
+    aplicarDadosNarrados(dados);
+    status.textContent = 'Formulário preenchido pela IA. Confira antes de salvar.';
+    window.toast('Preenchido pela IA local! Revise os campos.');
+  }catch(err){
+    status.textContent = 'Não foi possível interpretar a narração: '+(err?.message||err);
+    window.toast('Erro ao processar a narração.','error');
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+window.toggleNarracao = function(){
+  if(narracaoLigada) pararNarracao(true);
+  else iniciarNarracao();
+};
+
+if(!getSpeechRecognitionCtor()){
+  const btnNarracao = document.getElementById('narracao-btn');
+  if(btnNarracao){
+    btnNarracao.disabled = true;
+    btnNarracao.title = 'Reconhecimento de voz não suportado neste navegador';
+  }
+}
 </script>
 
 <script type="module">
@@ -3826,8 +4056,18 @@ window.syncPush = async function(){
   status.textContent='Enviando backup...';
   try{
     const ud=window.getUserData();
-    const { error } = await client.from('lifejiu_sync').upsert({ id: window.getCU(), payload: ud, updated_at: new Date().toISOString() });
+    const agora=new Date().toISOString();
+    const { error } = await client.from('lifejiu_sync').upsert({ id: window.getCU(), payload: ud, updated_at: agora });
     if(error) throw error;
+    // Além do backup completo (privado), manda só as stats públicas — nome, faixa,
+    // academia, xp, streak e treinos da semana — pra tabela separada que alimenta
+    // ranking e duelo entre outras contas. Nunca expõe peso, notas ou treinos detalhados.
+    const stats = window.computeUserStats(ud);
+    const { error: errStats } = await client.from('lifejiu_public_stats').upsert({
+      id: window.getCU(), nome: stats.nome, faixa: stats.faixa, academia: stats.academia,
+      xp: stats.xp, streak: stats.streak, treinos_semana: stats.treinosSemana, updated_at: agora
+    });
+    if(errStats) throw errStats;
     status.textContent='Backup enviado com sucesso em '+new Date().toLocaleString('pt-BR')+'.';
     window.toast('Dados sincronizados com sucesso!');
   }catch(err){
