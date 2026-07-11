@@ -3,7 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Life Jiu</title>
+<title>Life Jiu — Diário de Treino BJJ</title>
+<meta name="description" content="Registre seus treinos de jiu-jitsu, acompanhe evolução, finalizações e streak, e nunca mais esqueça o que aprendeu no tatame.">
+<meta name="theme-color" content="#0E0A0A">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Life Jiu">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Life Jiu — Diário de Treino BJJ">
+<meta property="og:description" content="Registre seus treinos de jiu-jitsu, acompanhe evolução, finalizações e streak, e nunca mais esqueça o que aprendeu no tatame.">
+<meta property="og:image" content="./icons/icon-512.png">
+<meta property="og:locale" content="pt_BR">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Life Jiu — Diário de Treino BJJ">
+<meta name="twitter:description" content="Registre seus treinos de jiu-jitsu, acompanhe evolução, finalizações e streak, e nunca mais esqueça o que aprendeu no tatame.">
+<meta name="twitter:image" content="./icons/icon-512.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.3.0/dist/tabler-icons.min.css">
@@ -1613,33 +1630,16 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
         </div>
         <p id="notif-status" style="font-size:11px;color:var(--muted);margin:0 0 4px;line-height:1.5"></p>
       </div>
-      <div class="card" style="margin-top:12px">
+      <div class="card" style="margin-top:12px" id="sync-card">
         <div class="card-title">
           <span>Sincronização entre Dispositivos</span>
-          <span class="card-badge badge-white">opcional</span>
+          <span class="card-badge badge-white" id="sync-badge">automático</span>
         </div>
         <p style="font-size:11px;color:var(--muted);margin:0 0 10px;line-height:1.5">
-          Por padrão, tudo no Life Jiu fica só no seu navegador. Se quiser acessar seus dados em outro celular/computador, conecte um banco gratuito do <strong>Supabase</strong> (supabase.com) — é a única forma de ter sincronização real sem depender de um servidor que a gente mesmo hospede. Você cria sua própria conta, então seus dados continuam sob seu controle, não nosso.
+          Sua conta já sincroniza sozinha entre celular e computador — é só entrar com o mesmo e-mail e senha em qualquer aparelho. Seus dados de treino ficam salvos com segurança na nuvem, visíveis só pra você.
         </p>
-        <div id="sync-setup-help" style="font-size:11px;color:var(--muted);background:var(--card2);border:1px dashed var(--border2);border-radius:9px;padding:10px;margin-bottom:10px">
-          <strong>Como configurar (uma vez só):</strong> crie um projeto grátis em supabase.com → vá em SQL Editor e execute:
-          <code style="display:block;background:rgba(0,0,0,.3);padding:8px;border-radius:6px;margin:6px 0;white-space:pre-wrap;font-size:10.5px">-- tabela de backup completo (só sua conta usa; guarda peso, notas, histórico etc.)
-create table lifejiu_sync (id text primary key, payload jsonb, updated_at timestamptz default now());
-alter table lifejiu_sync enable row level security;
-create policy "allow all sync" on lifejiu_sync for all using (true) with check (true);
-
--- tabela pública só com o que aparece no ranking/duelo (nunca peso, notas ou treinos detalhados)
-create table lifejiu_public_stats (id text primary key, nome text, faixa text, academia text, xp int default 0, streak int default 0, treinos_semana int default 0, updated_at timestamptz default now());
-alter table lifejiu_public_stats enable row level security;
-create policy "allow all stats" on lifejiu_public_stats for all using (true) with check (true);</code>
-          Depois cole a URL do projeto e a chave "anon public" abaixo (em Project Settings → API). <strong>Importante:</strong> essa chave funciona tipo uma senha de grupo — compartilhe só com quem você confia (seus parceiros de treino), porque quem tiver a chave consegue ler e escrever nessas tabelas.
-        </div>
-        <div class="fg"><label class="fl">Supabase URL</label><input type="text" id="supa-url-input" class="fi" placeholder="https://xxxx.supabase.co"></div>
-        <div class="fg"><label class="fl">Supabase anon key</label><input type="password" id="supa-key-input" class="fi" placeholder="eyJ..."></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
-          <button class="btn-sm" onclick="saveSupaConfig()">Salvar conexão</button>
-          <button class="btn-sm" onclick="syncPush()" style="background:var(--teal-dim);border-color:var(--teal);color:var(--teal)"><i class="ti ti-cloud-upload" style="font-size:13px"></i> Enviar backup agora</button>
-          <button class="btn-sm" onclick="syncPull()" style="background:var(--red-dim);border-color:var(--red);color:var(--red)"><i class="ti ti-cloud-download" style="font-size:13px"></i> Restaurar do servidor</button>
+          <button class="btn-sm" onclick="forceSyncNow()" style="background:var(--teal-dim);border-color:var(--teal);color:var(--teal)"><i class="ti ti-cloud-upload" style="font-size:13px"></i> Sincronizar agora</button>
         </div>
         <p id="sync-status" style="font-size:11px;color:var(--muted);margin-top:8px"></p>
       </div>
@@ -1808,6 +1808,7 @@ create policy "allow all stats" on lifejiu_public_stats for all using (true) wit
 
 <div class="toast" id="toast" role="status" aria-live="polite"><i class="ti ti-check-circle" id="toast-icon"></i> <span id="toast-msg">Salvo!</span></div>
 <script>
+// ==================== ARMAZENAMENTO LOCAL & UTILS ====================
 const STORE = {
   get:(k)=>{try{return JSON.parse(localStorage.getItem('lj_'+k))}catch{return null}},
   set:(k,v)=>{
@@ -1824,7 +1825,89 @@ const STORE = {
 };
 window.STORE = STORE;
 
+// ==================== CONFIGURAÇÃO DO BACKEND (preenchido uma única vez por você, o dev) ====================
+// Crie UM projeto grátis em supabase.com, rode o SQL abaixo (uma vez só) e cole a URL + anon key aqui.
+// Se deixar em branco, o app funciona 100% como antes (contas só no navegador, sem nuvem).
+//
+// SQL a rodar uma vez no SQL Editor do seu projeto Supabase:
+// -----------------------------------------------------------------
+// create table if not exists lifejiu_data (
+//   user_id uuid primary key references auth.users(id) on delete cascade,
+//   payload jsonb, updated_at timestamptz default now()
+// );
+// alter table lifejiu_data enable row level security;
+// create policy "users manage own data" on lifejiu_data
+//   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+//
+// create table if not exists lifejiu_public_stats (
+//   user_id uuid primary key references auth.users(id) on delete cascade,
+//   nome text, faixa text, academia text,
+//   xp int default 0, streak int default 0, treinos_semana int default 0,
+//   updated_at timestamptz default now()
+// );
+// alter table lifejiu_public_stats enable row level security;
+// create policy "users update own stats" on lifejiu_public_stats
+//   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+// create policy "anyone can read public stats" on lifejiu_public_stats
+//   for select using (true);
+// -----------------------------------------------------------------
+const SUPABASE_URL = '';
+const SUPABASE_ANON_KEY = '';
+const CLOUD_MODE = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
 
+let supaClient = null;
+let supaUser = null; // { id, email } do usuário logado no Supabase Auth, quando em CLOUD_MODE
+const supaReady = (async () => {
+  if (!CLOUD_MODE) return;
+  try {
+    const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
+    supaClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  } catch (e) {
+    console.error('Falha ao carregar Supabase — app vai operar em modo local:', e);
+  }
+})();
+
+let syncTimer = null;
+let lastSyncAt = null;
+function scheduleAutoSync(ud) {
+  if (!CLOUD_MODE || !supaClient || !supaUser) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => pushRemoteData(ud).catch(err => console.warn('Auto-sync falhou:', err)), 1200);
+}
+async function pushRemoteData(ud) {
+  if (!supaClient || !supaUser) return;
+  const agora = new Date().toISOString();
+  const { error } = await supaClient.from('lifejiu_data').upsert({ user_id: supaUser.id, payload: ud, updated_at: agora });
+  if (error) throw error;
+  const stats = computeUserStats(ud);
+  const { error: errStats } = await supaClient.from('lifejiu_public_stats').upsert({
+    user_id: supaUser.id, nome: stats.nome, faixa: stats.faixa, academia: stats.academia,
+    xp: stats.xp, streak: stats.streak, treinos_semana: stats.treinosSemana, updated_at: agora
+  });
+  if (errStats) throw errStats;
+  lastSyncAt = new Date();
+  updateSyncStatusUI();
+}
+async function pullRemoteData() {
+  if (!supaClient || !supaUser) return null;
+  const { data, error } = await supaClient.from('lifejiu_data').select('payload,updated_at').eq('user_id', supaUser.id).maybeSingle();
+  if (error) throw error;
+  return data || null;
+}
+function updateSyncStatusUI() {
+  const el = document.getElementById('sync-status');
+  if (!el) return;
+  if (!CLOUD_MODE) { el.textContent = 'Sincronização na nuvem não configurada neste app.'; return; }
+  if (!supaUser) { el.textContent = 'Não conectado.'; return; }
+  el.textContent = lastSyncAt
+    ? 'Sincronizado em ' + lastSyncAt.toLocaleString('pt-BR') + '.'
+    : 'Conectado — sincronizando...';
+}
+window.forceSyncNow = async function () {
+  if (!CLOUD_MODE || !supaUser) { toast('Sincronização na nuvem não está configurada.', 'error'); return; }
+  try { await pushRemoteData(getUserData()); toast('Dados sincronizados com sucesso!'); }
+  catch (err) { toast('Erro ao sincronizar: ' + (err?.message || err), 'error'); }
+};
 
 function escapeHtml(str){
   return String(str ?? '').replace(/[&<>"']/g, c => ({
@@ -1837,7 +1920,7 @@ function getCU(){ return CU }
 function getAllUsers(){ return STORE.get('users') || {} }
 function saveUsers(u){ STORE.set('users',u) }
 function getUserData(){ return STORE.get('ud_'+CU) || defaultUserData() }
-function saveUserData(d){ STORE.set('ud_'+CU, d) }
+function saveUserData(d){ STORE.set('ud_'+CU, d); scheduleAutoSync(d); }
 function defaultUserData(){
   return {
     profile:{ nome:'', academia:'', cidade:'', faixa:'Azul', grau:0, anos:0, peso:0, altura:0 },
@@ -1859,6 +1942,8 @@ function defaultUserData(){
     xp:0, streak:0, lastTrainDate:null
   };
 }
+
+// ==================== AUTENTICAÇÃO ====================
 function switchAuthTab(t){
   document.getElementById('tab-login').classList.toggle('active', t==='login');
   document.getElementById('tab-register').classList.toggle('active', t==='register');
@@ -1885,6 +1970,23 @@ async function doLogin(){
   const email = document.getElementById('login-email').value.trim().toLowerCase();
   const pass  = document.getElementById('login-pass').value;
   if(!email||!pass){ showAuthError('login-error','Preencha todos os campos.'); return }
+
+  if(CLOUD_MODE){
+    await supaReady;
+    if(!supaClient){ showAuthError('login-error','Não foi possível conectar ao servidor. Tente novamente.'); return }
+    const { data, error } = await supaClient.auth.signInWithPassword({ email, password: pass });
+    if(error){ showAuthError('login-error', error.message==='Invalid login credentials' ? 'E-mail ou senha incorretos.' : error.message); return }
+    supaUser = { id: data.user.id, email: data.user.email };
+    CU = data.user.email;
+    try{
+      const remote = await pullRemoteData();
+      if(remote && remote.payload) saveUserData(remote.payload);
+    }catch(e){ console.warn('Não foi possível puxar dados da nuvem, usando dados locais:', e); }
+    launchApp();
+    return;
+  }
+
+  // Modo local (sem backend na nuvem configurado)
   const users = getAllUsers();
   const u = users[email];
   if(!u){ showAuthError('login-error','E-mail ou senha incorretos.'); return }
@@ -1915,6 +2017,29 @@ async function doRegister(){
   if(!nome||!email||!pass){ showAuthError('reg-error','Preencha nome, e-mail e senha.'); return }
   if(pass.length<6){ showAuthError('reg-error','Senha muito curta (mínimo 6 caracteres).'); return }
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ showAuthError('reg-error','E-mail inválido.'); return }
+
+  if(CLOUD_MODE){
+    await supaReady;
+    if(!supaClient){ showAuthError('reg-error','Não foi possível conectar ao servidor. Tente novamente.'); return }
+    const { data, error } = await supaClient.auth.signUp({ email, password: pass, options: { data: { nome } } });
+    if(error){ showAuthError('reg-error', error.message==='User already registered' ? 'Este e-mail já está cadastrado.' : error.message); return }
+    if(!data.session){
+      showAuthError('reg-error','Conta criada! Confira seu e-mail para confirmar antes de entrar.');
+      return;
+    }
+    supaUser = { id: data.user.id, email: data.user.email };
+    CU = data.user.email;
+    const ud = defaultUserData();
+    ud.profile.nome = nome;
+    ud.profile.academia = academia;
+    ud.profile.faixa = faixa;
+    saveUserData(ud);
+    await pushRemoteData(ud).catch(e=>console.warn('Falha ao enviar dados iniciais:', e));
+    launchApp();
+    return;
+  }
+
+  // Modo local (sem backend na nuvem configurado)
   const users = getAllUsers();
   if(users[email]){ showAuthError('reg-error','Este e-mail já está cadastrado.'); return }
   const salt=genSalt();
@@ -1929,12 +2054,31 @@ async function doRegister(){
   saveUserData(ud);
   launchApp();
 }
-function doLogout(){
+
+// ==================== SESSÃO & BOOT DO APP ====================
+async function doLogout(){
+  if(CLOUD_MODE && supaClient) await supaClient.auth.signOut().catch(()=>{});
   STORE.del('session');
   CU = null;
+  supaUser = null;
   location.reload();
 }
-function checkSession(){
+async function checkSession(){
+  if(CLOUD_MODE){
+    await supaReady;
+    if(!supaClient) return;
+    const { data } = await supaClient.auth.getSession();
+    if(data && data.session){
+      supaUser = { id: data.session.user.id, email: data.session.user.email };
+      CU = data.session.user.email;
+      try{
+        const remote = await pullRemoteData();
+        if(remote && remote.payload) saveUserData(remote.payload);
+      }catch(e){ console.warn('Não foi possível puxar dados da nuvem, usando cache local:', e); }
+      launchApp();
+    }
+    return;
+  }
   const s = STORE.get('session');
   const users = getAllUsers();
   if(s && users[s]){ CU=s; launchApp(); }
@@ -1947,6 +2091,9 @@ function launchApp(){
   showScreen('dashboard');
   initTheme();
   initNotifState();
+  const syncCard = document.getElementById('sync-card');
+  if(syncCard) syncCard.style.display = CLOUD_MODE ? '' : 'none';
+  updateSyncStatusUI();
 }
 function refreshAll(){
   const ud = getUserData();
@@ -1961,6 +2108,8 @@ function refreshAll(){
   renderPerfil(ud);
   renderTreinosList(ud);
 }
+
+// ==================== NAVEGAÇÃO ENTRE TELAS ====================
 const SCREENS = ['dashboard','registro','rendimento','evolucao','fisico','competicoes','ia','social','perfil'];
 function showScreen(name){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
@@ -1974,6 +2123,8 @@ function showScreen(name){
   if(name==='rendimento') renderRendimento(getUserData());
   if(name==='fisico') renderFisico(getUserData());
 }
+
+// ==================== HELPERS DE FORMATAÇÃO ====================
 function initials(name){ return name.split(' ').map(w=>w[0]||'').slice(0,2).join('').toUpperCase()||'?' }
 function formatH(mins){ const h=Math.floor(mins/60),m=mins%60; return h>0?(m>0?`${h}h ${m}m`:`${h}h`):`${m}m` }
 function today(){ return new Date().toISOString().split('T')[0] }
@@ -2036,6 +2187,8 @@ function toast(msg, type='success'){
 }
 function closeModal(id){ document.getElementById(id).classList.add('hidden') }
 function openModal(id){ document.getElementById(id).classList.remove('hidden') }
+
+// ==================== CALENDÁRIO & DASHBOARD ====================
 function updateTopbar(ud){
   const p=ud.profile;
   const ini=initials(p.nome||'?');
@@ -2204,6 +2357,8 @@ function renderPerfChart(ud){
   });
 }
 let selectedType='tecnica';
+
+// ==================== REGISTRO DE TREINO ====================
 function selectType(el,t){
   document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));
   el.classList.add('active'); selectedType=t;
@@ -2370,6 +2525,8 @@ const POSICOES_DEFS=[
   {nome:'Montada',ap:'montada',sf:'montadaSf',pts:4,path:'M5 21V9a7 7 0 0 1 14 0v12M5 21h14'},
   {nome:'Costas',ap:'costas',sf:'costasSf',pts:4,path:'M6 4h8a4 4 0 0 1 4 4v12H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z'},
 ];
+
+// ==================== MAPA DE POSIÇÕES ====================
 function corPorRatio(ratio){
   if(ratio===null) return {base:'rgba(255,255,255,.3)',id:'neutro'};
   if(ratio>=0.65) return {base:'var(--teal)',id:'teal'};
@@ -2534,6 +2691,8 @@ function abrirDetalhePosicao(ap, sf, nome, pts){
   }
   openModal('modal-pos-detalhe');
 }
+
+// ==================== RENDIMENTO & CONQUISTAS ====================
 function renderRendimento(ud){
   const tAll=ud.treinos||[];
   const t=filterByPeriodo(tAll);
@@ -2625,6 +2784,8 @@ function renderEvolucao(ud){
   renderSugestaoMeta(ud);
   renderNotasProf(ud, document.getElementById('notas-search')?.value||'');
 }
+
+// ==================== METAS & SUGESTÕES ====================
 function renderSugestaoMeta(ud){
   const wrap=document.getElementById('meta-sugestao-wrap');
   if(!wrap) return;
@@ -2706,6 +2867,8 @@ function renderMetasView(tipo, ud){
     </div>`;
   }).join('');
 }
+
+// ==================== FÍSICO ====================
 function renderFisico(ud){
   const f=ud.fisico||{};
   const h=ud.profile.altura||0;
@@ -2746,6 +2909,8 @@ function renderFisico(ud){
     ctx.fillText('Atualize seu peso para ver a evolução aqui.',ctx.canvas.width/2,50);
   }
 }
+
+// ==================== COMPETIÇÕES ====================
 function renderComps(ud){
   const comps=ud.competicoes||[];
   const active=comps.filter(c=>c.status!=='finalizado');
@@ -2800,6 +2965,8 @@ function renderComps(ud){
     }).join('');
   }
 }
+
+// ==================== IA / DETECÇÃO DE PLATÔ ====================
 function detectarPlato(ud){
   const el=document.getElementById('ia-plato');
   if(!el) return;
@@ -2885,6 +3052,8 @@ function renderIA(ud){
 // treinos detalhados etc.) — só os campos necessários pro ranking e pro duelo, lidos da tabela
 // lifejiu_public_stats. O backup completo (lifejiu_sync) só é lido/escrito para a própria conta.
 let remoteDirCache = {};
+
+// ==================== SOCIAL, RANKING & DUELO ====================
 async function fetchRemoteDirectory(){
   const client=getClient();
   if(!client) return null;
@@ -3037,6 +3206,8 @@ function renderDuelo(){
       <span>XP total</span><span><strong style="color:${cor(meu.xp||0,dele.xp||0)}">${meu.xp||0}</strong> x <strong style="color:${cor(dele.xp||0,meu.xp||0)}">${dele.xp||0}</strong></span>
     </div>`;
 }
+
+// ==================== DESAFIOS SEMANAIS ====================
 function weekKey(){
   const d=new Date(); const onejan=new Date(d.getFullYear(),0,1);
   const week=Math.ceil((((d-onejan)/86400000)+onejan.getDay()+1)/7);
@@ -3097,6 +3268,8 @@ function claimChallenge(id,claimedKey,xp){
   ud.xp=(ud.xp||0)+xp;
   saveUserData(ud); refreshAll(); toast(`Desafio concluído! +${xp} xp`);
 }
+
+// ==================== PERFIL & EDIÇÃO DE DADOS ====================
 function renderPerfil(ud){
   const p=ud.profile;
   const ini=initials(p.nome||'?');
@@ -3251,6 +3424,8 @@ function removeComp(id){
   ud.competicoes=(ud.competicoes||[]).filter(c=>c.id!==id);
   saveUserData(ud); refreshAll(); toast('Competição removida.');
 }
+
+// ==================== TEMA & NOTIFICAÇÕES ====================
 function toggleTheme(light){
   document.documentElement.setAttribute('data-theme', light?'light':'dark');
   STORE.set('theme', light?'light':'dark');
@@ -3337,6 +3512,8 @@ function initNotifState(){
     tentarRegistrarServiceWorker().then(()=>tentarPeriodicSync());
   }
 }
+
+// ==================== EXPORT / IMPORT / BACKUP ====================
 function downloadFile(filename, content, mime){
   const blob=new Blob([content],{type:mime});
   const url=URL.createObjectURL(blob);
@@ -3401,6 +3578,8 @@ function importJSON(ev){
   reader.readAsText(file);
   ev.target.value='';
 }
+
+// ==================== LISTAGEM & EDIÇÃO DE TREINOS ====================
 function formatarDataRelativa(dataStr){
   const d=new Date(dataStr+'T12:00');
   const hoje=new Date(); hoje.setHours(12,0,0,0);
@@ -3518,6 +3697,8 @@ function deleteTreino(id){
   saveUserData(ud); refreshAll(); toast('Treino excluído.','error');
 }
 
+
+// ==================== CARTÃO DE ATLETA (IMAGEM) ====================
 function exportCartaoAtleta(){
   const ud=getUserData();
   const xpData=calcXPLevel(ud.xp||0);
@@ -3723,6 +3904,8 @@ function exportTreinoCard(id){
   },'image/png');
 }
 
+
+// ==================== ZONA DE PERIGO (RESET) ====================
 function confirmClearData(){
   if(confirm('Tem certeza? Todos os treinos e dados serão apagados permanentemente.')){
     const ud=defaultUserData();
@@ -3733,7 +3916,8 @@ function confirmClearData(){
 document.getElementById('reg-data').value=today();
 updateIntColor(5);
 initTheme();
-checkSession();
+checkSession().catch(err => console.error('Erro ao checar sessão:', err));
+tentarRegistrarServiceWorker();
 </script>
 
 <script type="module">
@@ -3744,6 +3928,8 @@ const MODEL_ID = 'onnx-community/Qwen2.5-0.5B-Instruct';
 let generator = null;
 let loadingPromise = null;
 
+
+// ==================== IA LOCAL (transformers.js) ====================
 function buildIaPrompt(){
   const ud = window.getUserData();
   const t = ud.treinos||[];
@@ -3824,6 +4010,8 @@ window.gerarAnaliseIA = async function(){
   }
 };
 
+
+// ==================== NARRAÇÃO POR VOZ ====================
 function getSpeechRecognitionCtor(){
   return window.SpeechRecognition || window.webkitSpeechRecognition || null;
 }
@@ -4022,80 +4210,8 @@ if(!getSpeechRecognitionCtor()){
 }
 </script>
 
-<script type="module">
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-
-function getSupaConfig(){
-  return { url: window.STORE.get('supa_url')||'', key: window.STORE.get('supa_key')||'' };
-}
-window.saveSupaConfig = function(){
-  const url=document.getElementById('supa-url-input').value.trim();
-  const key=document.getElementById('supa-key-input').value.trim();
-  if(!url||!key){ window.toast('Preencha a URL e a chave do Supabase.','error'); return }
-  window.STORE.set('supa_url', url);
-  window.STORE.set('supa_key', key);
-  document.getElementById('supa-key-input').value='••••••••••••••••';
-  document.getElementById('sync-status').textContent='Conexão salva. Use "Enviar backup agora" para testar.';
-  window.toast('Configuração do Supabase salva!');
-};
-function initSupaFields(){
-  const {url,key} = getSupaConfig();
-  const u=document.getElementById('supa-url-input'), k=document.getElementById('supa-key-input');
-  if(u && url) u.value=url;
-  if(k && key) k.value='••••••••••••••••';
-}
-function getClient(){
-  const {url,key} = getSupaConfig();
-  if(!url||!key) return null;
-  return createClient(url,key);
-}
-window.syncPush = async function(){
-  const status=document.getElementById('sync-status');
-  const client=getClient();
-  if(!client){ window.toast('Configure e salve a conexão com o Supabase primeiro.','error'); return }
-  status.textContent='Enviando backup...';
-  try{
-    const ud=window.getUserData();
-    const agora=new Date().toISOString();
-    const { error } = await client.from('lifejiu_sync').upsert({ id: window.getCU(), payload: ud, updated_at: agora });
-    if(error) throw error;
-    // Além do backup completo (privado), manda só as stats públicas — nome, faixa,
-    // academia, xp, streak e treinos da semana — pra tabela separada que alimenta
-    // ranking e duelo entre outras contas. Nunca expõe peso, notas ou treinos detalhados.
-    const stats = window.computeUserStats(ud);
-    const { error: errStats } = await client.from('lifejiu_public_stats').upsert({
-      id: window.getCU(), nome: stats.nome, faixa: stats.faixa, academia: stats.academia,
-      xp: stats.xp, streak: stats.streak, treinos_semana: stats.treinosSemana, updated_at: agora
-    });
-    if(errStats) throw errStats;
-    status.textContent='Backup enviado com sucesso em '+new Date().toLocaleString('pt-BR')+'.';
-    window.toast('Dados sincronizados com sucesso!');
-  }catch(err){
-    status.textContent='Erro ao enviar: '+(err?.message||err);
-    window.toast('Erro ao sincronizar.','error');
-  }
-};
-window.syncPull = async function(){
-  const status=document.getElementById('sync-status');
-  const client=getClient();
-  if(!client){ window.toast('Configure e salve a conexão com o Supabase primeiro.','error'); return }
-  if(!confirm('Isso vai sobrescrever os dados deste dispositivo com o que estiver salvo no servidor. Continuar?')) return;
-  status.textContent='Buscando backup no servidor...';
-  try{
-    const { data, error } = await client.from('lifejiu_sync').select('payload,updated_at').eq('id', window.getCU()).single();
-    if(error) throw error;
-    if(!data){ status.textContent='Nenhum backup encontrado no servidor para esta conta.'; return }
-    window.saveUserData(data.payload);
-    window.refreshAll();
-    status.textContent='Dados restaurados (backup de '+new Date(data.updated_at).toLocaleString('pt-BR')+').';
-    window.toast('Dados restaurados do servidor!');
-  }catch(err){
-    status.textContent='Erro ao restaurar: '+(err?.message||err);
-    window.toast('Erro ao restaurar backup.','error');
-  }
-};
-document.addEventListener('DOMContentLoaded', initSupaFields);
-if(document.readyState!=='loading') initSupaFields();
+<script>
+// Nota: a sincronização com a nuvem agora é automática 
 </script>
 <script>
 
