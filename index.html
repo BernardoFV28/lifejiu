@@ -626,11 +626,11 @@
       </div>
       <div class="g2">
         <div class="card">
-          <div class="card-title">Ranking de XP <span class="card-badge badge-red">Geral</span></div>
+          <div class="card-title"><span><i class="ti ti-trophy" style="color:var(--gold);margin-right:8px"></i>Ranking de XP</span> <span class="card-badge badge-red">Geral</span></div>
           <div class="rank-list" id="rank-list"></div>
         </div>
         <div class="card">
-          <div class="card-title">Desafios Ativos <span class="card-badge badge-gold">Semanal</span></div>
+          <div class="card-title"><span><i class="ti ti-target" style="color:var(--red);margin-right:8px"></i>Desafios Ativos</span> <span class="card-badge badge-gold">Semanal</span></div>
           <div id="challenges-list" style="display:flex;flex-direction:column;gap:10px"></div>
         </div>
       </div>
@@ -644,30 +644,36 @@
           <select id="duelo-select" class="fi" style="margin-bottom:11px" onchange="renderDuelo()">
             <option value="">Escolha um atleta para desafiar...</option>
           </select>
-          <div id="duelo-result"></div>
+          <div id="duelo-result"><div class="duelo-empty"><i class="ti ti-swords"></i>Escolha um atleta acima para comparar streak, treinos da semana e XP com ele.</div></div>
         </div>
       </div>
     </div>
     <div class="screen" id="screen-perfil">
       <div class="topbar">
         <div class="topbar-left"><h1>Perfil do Atleta</h1></div>
-        <button class="btn-sm" onclick="openEditPerfil()"><i class="ti ti-edit" style="font-size:13px"></i> Editar perfil</button>
       </div>
-      <div class="profile-center">
-        <div class="profile-av-big" id="perfil-av" onclick="openEditPerfil()">—</div>
-        <div style="font-family:var(--font-d);font-size:24px;font-weight:700;letter-spacing:.3px" id="perfil-nome">—</div>
-        <div style="font-size:13px;color:var(--muted);margin-top:3px" id="perfil-academia">—</div>
-        <div style="display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:6px 16px;background:var(--red-dim);border-radius:20px;font-size:12px;color:var(--red);font-weight:600;border:1px solid var(--border2)" id="perfil-faixa-badge">
-          <i class="ti ti-award"></i> —
+      <div class="card profile-hero">
+        <div class="profile-hero-bg"></div>
+        <div class="profile-hero-top">
+          <div class="profile-av-big" id="perfil-av" onclick="openEditPerfil()">—</div>
+          <div class="profile-hero-info">
+            <div class="profile-hero-name" id="perfil-nome">—</div>
+            <div class="profile-hero-sub" id="perfil-academia">—</div>
+            <div class="profile-hero-badges">
+              <span class="perfil-badge-pill" id="perfil-faixa-badge"><i class="ti ti-award"></i> —</span>
+              <button type="button" class="perfil-badge-pill" id="perfil-sport-badge" onclick="showScreen('esporte')" aria-label="Trocar modalidade"><i class="ti ti-dumbbell"></i> —</button>
+            </div>
+          </div>
+          <button class="btn-sm profile-hero-edit" onclick="openEditPerfil()"><i class="ti ti-edit" style="font-size:13px"></i> Editar perfil</button>
+        </div>
+        <div class="stats-row profile-hero-stats">
+          <div class="stat-card red"><div class="stat-label">Total de treinos</div><div class="stat-value" id="p-treinos">0</div></div>
+          <div class="stat-card gold"><div class="stat-label">Horas no tatame</div><div class="stat-value" id="p-horas">0<span>h</span></div></div>
+          <div class="stat-card teal"><div class="stat-label">Finalizações</div><div class="stat-value" id="p-fin">0</div></div>
+          <div class="stat-card white"><div class="stat-label">Competições</div><div class="stat-value" id="p-comps">0</div></div>
         </div>
       </div>
-      <div class="stats-row">
-        <div class="stat-card red"><div class="stat-label">Total de treinos</div><div class="stat-value" id="p-treinos">0</div></div>
-        <div class="stat-card gold"><div class="stat-label">Horas no tatame</div><div class="stat-value" id="p-horas">0<span>h</span></div></div>
-        <div class="stat-card teal"><div class="stat-label">Finalizações</div><div class="stat-value" id="p-fin">0</div></div>
-        <div class="stat-card white"><div class="stat-label">Competições</div><div class="stat-value" id="p-comps">0</div></div>
-      </div>
-      <div class="card">
+      <div class="card" style="margin-top:12px">
         <div class="card-title">Dados pessoais <button class="btn-sm" onclick="openEditPerfil()" style="font-size:10px;padding:4px 9px"><i class="ti ti-edit" style="font-size:12px"></i> Alterar</button></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" id="perfil-dados-grid"></div>
       </div>
@@ -682,13 +688,6 @@
           <label class="switch"><input type="checkbox" id="notif-toggle" onchange="toggleNotifications(this.checked)"><span class="slider"></span></label>
         </div>
         <p id="notif-status" style="font-size:11px;color:var(--muted);margin:0 0 4px;line-height:1.5"></p>
-      </div>
-      <div class="card" style="margin-top:12px">
-        <div class="card-title">Modalidade</div>
-        <div class="sport-switch-row">
-          <span class="sport-badge-mini" id="perfil-sport-badge"><i class="ti ti-dumbbell"></i> —</span>
-          <button class="btn-sm" onclick="showScreen('esporte')"><i class="ti ti-replace" style="font-size:13px"></i> Trocar modalidade</button>
-        </div>
       </div>
       <div class="card" style="margin-top:12px" id="sync-card">
         <div class="card-title">
