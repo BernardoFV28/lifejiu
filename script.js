@@ -20,7 +20,6 @@ const CLOUD_MODE = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
 
 let supaClient = null;
 let supaUser = null;
-function getClient(){ return CLOUD_MODE ? supaClient : null; }
 const supaReady = (async () => {
   if (!CLOUD_MODE) return;
   try {
@@ -462,6 +461,11 @@ function showScreen(name){
   const navs = document.querySelectorAll('.nav-item');
   if(idx>=0 && idx<8) navs[idx].classList.add('active');
   else if(idx===8) navs[8].classList.add('active');
+  document.querySelectorAll('.bottom-nav-item').forEach(b=>{
+    b.classList.toggle('active', b.dataset.bn===name);
+    b.removeAttribute('aria-current');
+    if(b.dataset.bn===name) b.setAttribute('aria-current','page');
+  });
   if(name==='rendimento') renderRendimento(getUserData());
   if(name==='fisico') renderFisico(getUserData());
 }
@@ -632,7 +636,7 @@ function renderDashboard(ud){
   const rl=document.getElementById('recent-list');
   const recent=[...treinosModalidade].reverse().slice(0,4);
   if(!recent.length){
-    rl.innerHTML=`<div style="text-align:center;padding:22px;color:var(--muted);font-size:13px"><i class="ti ti-dumbbell" style="font-size:26px;display:block;margin-bottom:7px;opacity:.4"></i>Nenhum treino ainda.<br><span style="color:var(--red);cursor:pointer;font-weight:600" onclick="showScreen('registro')">Registre seu primeiro!</span></div>`;
+    rl.innerHTML=`<div class="empty-state"><i class="ti ti-dumbbell"></i><strong>Seu primeiro treino começa aqui</strong><p>Registre uma sessão para começar a ver sua evolução.</p><button type="button" class="empty-cta" onclick="showScreen('registro')">+ Registrar treino</button></div>`;
   } else {
     rl.innerHTML=recent.map(t=>{
       const iconMap={tecnica:'ri-tec ti-atom',sparring:'ri-sp ti-swords',fisico:'ri-fis ti-run',competicao:'ri-comp ti-medal'};
@@ -1253,7 +1257,7 @@ function renderComps(ud){
   const hist=comps.filter(c=>c.status==='finalizado');
   const cl=document.getElementById('comps-list');
   if(!active.length){
-    cl.innerHTML=`<div class="card" style="margin-bottom:12px;text-align:center;padding:24px;color:var(--muted);font-size:13px"><i class="ti ti-calendar-event" style="font-size:28px;display:block;margin-bottom:8px;opacity:.4"></i>Nenhuma competição agendada.<br><span style="color:var(--red);cursor:pointer;font-weight:600" onclick="openAddComp()">Adicionar competição</span></div>`;
+    cl.innerHTML=`<div class="card" style="margin-bottom:12px"><div class="empty-state"><i class="ti ti-calendar-event"></i><strong>Nenhuma competição agendada</strong><p>Adicione uma data para acompanhar sua preparação e contagem regressiva.</p><button type="button" class="empty-cta" onclick="openAddComp()">+ Adicionar competição</button></div></div>`;
   } else {
     cl.innerHTML=active.map(c=>{
       const diff=Math.ceil((new Date(c.data)-new Date(today()))/(86400000));
@@ -1638,7 +1642,7 @@ function renderDuelo(){
   const box=document.getElementById('duelo-result');
   const email=document.getElementById('duelo-select')?.value;
   if(!box) return;
-  if(!email){ box.innerHTML=`<div class="duelo-empty"><i class="ti ti-swords"></i>Escolha um atleta acima para comparar streak, treinos da semana e XP com ele.</div>`; return; }
+  if(!email){ box.innerHTML=''; return; }
   const meu=computeUserStats(getUserData());
   const dele=getStatsFor(email);
   const nomeDele=dele.nome||'Atleta';
@@ -1741,7 +1745,7 @@ function renderPerfil(ud){
   const sportBadge = document.getElementById('perfil-sport-badge');
   if(sportBadge){
     const s = SPORTS_DB[p.esporte] || SPORTS_DB['jiu-jitsu'];
-    sportBadge.innerHTML = `<i class="ti ${s.icone}"></i> ${escapeHtml(s.nome)} <i class="ti ti-chevron-right" style="font-size:10px;opacity:.55;margin-left:1px"></i>`;
+    sportBadge.innerHTML = `<i class="ti ${s.icone}"></i> ${escapeHtml(s.nome)}`;
   }
   const t=treinosDaModalidade(ud);
   const mins=totalMinutes(t);
@@ -2403,7 +2407,6 @@ checkSession().catch(err => console.error('Erro ao checar sessão:', err));
 tentarRegistrarServiceWorker();
 
 
-/* ===== Parallax mouse tracking (mesclado do bloco de script separado) ===== */
 
 (function(){
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
