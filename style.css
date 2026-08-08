@@ -612,10 +612,10 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.1)}
   background:linear-gradient(135deg,var(--red),var(--red-deep));
   display:flex;align-items:center;justify-content:center;
   font-family:var(--font-d);font-size:36px;font-weight:700;margin:0 auto 12px;
-  box-shadow:0 6px 20px rgba(0,0,0,.35), 0 0 30px rgba(215,38,56,.35), inset 0 1px 0 rgba(255,255,255,.2);
+  box-shadow:0 6px 20px rgba(0,0,0,.35), 0 0 30px var(--sport-glow, rgba(215,38,56,.35)), inset 0 1px 0 rgba(255,255,255,.2);
   cursor:pointer;transition:box-shadow .25s var(--ease),transform .2s var(--ease);
 }
-.profile-av-big:hover{box-shadow:0 8px 26px rgba(0,0,0,.4), 0 0 42px rgba(215,38,56,.5), inset 0 1px 0 rgba(255,255,255,.25);transform:translateY(-1px)}
+.profile-av-big:hover{box-shadow:0 8px 26px rgba(0,0,0,.4), 0 0 42px var(--sport-glow, rgba(215,38,56,.5)), inset 0 1px 0 rgba(255,255,255,.25);transform:translateY(-1px)}
 
 
 table{border-collapse:collapse;width:100%}
@@ -1043,3 +1043,39 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
   font-size:11px;font-weight:600;background:var(--sport-dim,var(--red-dim));color:var(--sport-c,var(--red));
   border:1px solid var(--border2);
 }
+
+/* ===== Perfil: cabeçalho unificado (avatar + nome + badges + stats) ===== */
+.profile-hero{ position:relative; overflow:hidden; padding:24px 20px 20px }
+.profile-hero-bg{
+  position:absolute; inset:0;
+  background:radial-gradient(120% 100% at 18% 0%, var(--sport-dim,var(--red-dim)) 0%, transparent 62%);
+  pointer-events:none;
+}
+.profile-hero-top{ position:relative; z-index:1; display:flex; align-items:center; gap:16px; flex-wrap:wrap }
+.profile-hero-info{ flex:1; min-width:160px }
+.profile-hero-name{ font-family:var(--font-d); font-size:21px; font-weight:700; letter-spacing:.2px; line-height:1.2 }
+.profile-hero-sub{ font-size:13px; color:var(--muted); margin-top:2px }
+.profile-hero-badges{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px }
+.perfil-badge-pill{
+  display:inline-flex; align-items:center; gap:6px; padding:6px 13px; border-radius:20px;
+  font-size:12px; font-weight:600; background:var(--red-dim); color:var(--red); border:1px solid var(--border2);
+}
+button.perfil-badge-pill{
+  background:var(--sport-dim,var(--red-dim)); color:var(--sport-c,var(--red));
+  cursor:pointer; font-family:inherit; transition:transform .15s var(--ease),border-color .15s var(--ease);
+}
+button.perfil-badge-pill:hover{ transform:translateY(-1px); border-color:var(--sport-c,var(--red)) }
+.profile-hero-edit{ flex-shrink:0 }
+.profile-hero-stats{ position:relative; z-index:1; margin:20px 0 0 }
+@media (max-width:560px){
+  .profile-hero-top{ flex-direction:column; text-align:center }
+  .profile-hero-badges{ justify-content:center }
+  .profile-hero-edit{ width:100% }
+}
+
+/* ===== Social: estado vazio do card de Duelo 1x1 (evita card "esticado" em branco) ===== */
+.duelo-empty{
+  display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
+  gap:8px; padding:28px 10px; color:var(--muted); font-size:12.5px; min-height:150px;
+}
+.duelo-empty i{ font-size:26px; opacity:.35 }
