@@ -1638,7 +1638,7 @@ function renderDuelo(){
   const box=document.getElementById('duelo-result');
   const email=document.getElementById('duelo-select')?.value;
   if(!box) return;
-  if(!email){ box.innerHTML=''; return; }
+  if(!email){ box.innerHTML=`<div class="duelo-empty"><i class="ti ti-swords"></i>Escolha um atleta acima para comparar streak, treinos da semana e XP com ele.</div>`; return; }
   const meu=computeUserStats(getUserData());
   const dele=getStatsFor(email);
   const nomeDele=dele.nome||'Atleta';
@@ -1741,7 +1741,7 @@ function renderPerfil(ud){
   const sportBadge = document.getElementById('perfil-sport-badge');
   if(sportBadge){
     const s = SPORTS_DB[p.esporte] || SPORTS_DB['jiu-jitsu'];
-    sportBadge.innerHTML = `<i class="ti ${s.icone}"></i> ${escapeHtml(s.nome)}`;
+    sportBadge.innerHTML = `<i class="ti ${s.icone}"></i> ${escapeHtml(s.nome)} <i class="ti ti-chevron-right" style="font-size:10px;opacity:.55;margin-left:1px"></i>`;
   }
   const t=treinosDaModalidade(ud);
   const mins=totalMinutes(t);
@@ -2403,6 +2403,7 @@ checkSession().catch(err => console.error('Erro ao checar sessão:', err));
 tentarRegistrarServiceWorker();
 
 
+/* ===== Parallax mouse tracking (mesclado do bloco de script separado) ===== */
 
 (function(){
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
