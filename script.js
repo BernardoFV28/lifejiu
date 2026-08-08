@@ -20,6 +20,7 @@ const CLOUD_MODE = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
 
 let supaClient = null;
 let supaUser = null;
+function getClient(){ return CLOUD_MODE ? supaClient : null; }
 const supaReady = (async () => {
   if (!CLOUD_MODE) return;
   try {
