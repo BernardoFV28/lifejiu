@@ -179,43 +179,43 @@ h1,h2,h3{font-family:var(--font-d);letter-spacing:.3px}
 
 
 @media (max-width: 1024px){
-  .stats-row{grid-template-columns:repeat(2,1fr)}
-  .g2{grid-template-columns:1fr 1fr}
+  .stats-row{grid-template-columns:repeat(2,1fr) !important}
+  .g2{grid-template-columns:1fr 1fr !important}
 }
 @media (max-width: 760px){
   .sidebar{
-    width:100%;height:64px;position:fixed;bottom:0;left:0;top:auto;
-    flex-direction:row;justify-content:space-around;padding:6px 4px;
-    border-right:none;border-top:1px solid var(--border);gap:0;
-    overflow-x:auto;box-shadow:0 -8px 24px -16px rgba(0,0,0,.5);
+    width:100% !important;height:64px !important;position:fixed;bottom:0;left:0;top:auto;
+    flex-direction:row !important;justify-content:space-around;padding:6px 4px !important;
+    border-right:none !important;border-top:1px solid var(--border);gap:0 !important;
+    overflow-x:auto;box-shadow:0 -8px 24px -16px rgba(0,0,0,.5) !important;
   }
-  .logo-mark{display:none}
-  .nav-bottom{margin-top:0;display:flex}
-  .nav-item{width:42px;height:42px;flex-shrink:0}
+  .logo-mark{display:none !important}
+  .nav-bottom{margin-top:0 !important;display:flex}
+  .nav-item{width:42px !important;height:42px !important;flex-shrink:0}
   .nav-item .tip{display:none}
-  .main{margin-left:0;padding-bottom:74px}
-  .screen{padding:16px 14px}
+  .main{margin-left:0 !important;padding-bottom:74px}
+  .screen{padding:16px 14px !important}
   .topbar{flex-wrap:wrap;gap:10px}
-  .topbar-left h1{font-size:21px}
+  .topbar-left h1{font-size:21px !important}
   .g2,.g2e,.g3,.stats-row{grid-template-columns:1fr !important}
   .modal{padding:18px;max-height:88vh;border-radius:16px}
   .fr{flex-direction:column}
   table{font-size:11.5px}
   .score-in{width:44px !important;padding:5px 4px !important}
-  .card{padding:16px}
+  .card{padding:16px !important}
   .perf-grid{grid-template-columns:1fr 1fr !important}
 }
 @media (max-width: 480px){
   .auth-wrap{padding:0 14px}
-  .topbar-left h1{font-size:19px}
+  .topbar-left h1{font-size:19px !important}
   .topbar-left p{font-size:12px}
-  .card-title{font-size:13.5px;flex-wrap:wrap;gap:6px}
-  .stat-value{font-size:26px}
+  .card-title{font-size:13.5px !important;flex-wrap:wrap;gap:6px}
+  .stat-value{font-size:26px !important}
   table{font-size:10.5px}
   table th:nth-child(1), table td:nth-child(1){padding-right:2px}
   .score-in{width:38px !important;padding:5px 3px !important;font-size:12px !important}
-  .nav-item{width:38px;height:38px}
-  .modal h2{font-size:16px}
+  .nav-item{width:38px !important;height:38px !important}
+  .modal h2{font-size:16px !important}
   .perf-grid{grid-template-columns:1fr !important}
   .rank-item{flex-wrap:wrap}
 }
