@@ -261,6 +261,7 @@ function getUserData(){
     d.profile.esporte = 'jiu-jitsu';
     d.profile.esporteEscolhido = true;
   }
+  if(!d.biblioteca) d.biblioteca = [];
   return d;
 }
 function saveUserData(d){ STORE.set('ud_'+CU, d); scheduleAutoSync(d); }
@@ -282,7 +283,7 @@ function defaultUserData(){
       semanal:[ {label:'Treinos por semana',meta:4,unidade:'treinos'}, {label:'Horas de treino',meta:6,unidade:'h'}, {label:'Sessões de sparring',meta:2,unidade:'sessões'} ],
       mensal:[ {label:'Treinos no mês',meta:16,unidade:'treinos'}, {label:'Finalizações',meta:30,unidade:'fin.'}, {label:'Preparação física',meta:4,unidade:'sessões'} ]
     },
-  xp:0, streak:0, lastTrainDate:null, planoAcaoFeito:{}
+  xp:0, streak:0, lastTrainDate:null, planoAcaoFeito:{}, biblioteca:[]
     };
 }
 
@@ -449,9 +450,12 @@ function refreshAll(){
   renderSocial(ud);
   renderPerfil(ud);
   renderTreinosList(ud);
+  renderMeuJogo(ud);
+  renderBiblioteca(ud);
 }
 
-const SCREENS = ['dashboard','registro','rendimento','evolucao','fisico','competicoes','ia','social','perfil'];
+const SCREENS = ['dashboard','meujogo','biblioteca','registro','rendimento','evolucao','fisico','competicoes','ia','social','perfil'];
+const SCREENS_TOP_COUNT = 10; // itens da sidebar principal (exclui perfil/sair, que ficam em nav-bottom)
 function showScreen(name){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
@@ -459,8 +463,8 @@ function showScreen(name){
   if(el) el.classList.add('active');
   const idx = SCREENS.indexOf(name);
   const navs = document.querySelectorAll('.nav-item');
-  if(idx>=0 && idx<8) navs[idx].classList.add('active');
-  else if(idx===8) navs[8].classList.add('active');
+  if(idx>=0 && idx<SCREENS_TOP_COUNT) navs[idx].classList.add('active');
+  else if(idx===SCREENS_TOP_COUNT) navs[SCREENS_TOP_COUNT].classList.add('active');
   document.querySelectorAll('.bottom-nav-item').forEach(b=>{
     b.classList.toggle('active', b.dataset.bn===name);
     b.removeAttribute('aria-current');
@@ -468,6 +472,8 @@ function showScreen(name){
   });
   if(name==='rendimento') renderRendimento(getUserData());
   if(name==='fisico') renderFisico(getUserData());
+  if(name==='meujogo') renderMeuJogo(getUserData());
+  if(name==='biblioteca') renderBiblioteca(getUserData());
 }
 
 function initials(name){ return name.split(' ').map(w=>w[0]||'').slice(0,2).join('').toUpperCase()||'?' }
@@ -601,6 +607,7 @@ function irRegistrarNesseDia(){
 }
 
 function renderDashboard(ud){
+  renderFocoDia(ud);
   const mes=new Date().getMonth(), ano=new Date().getFullYear();
   const treinosModalidade=treinosDaModalidade(ud);
   const treinosMes=treinosModalidade.filter(t=>{const d=new Date(t.data);return d.getMonth()===mes&&d.getFullYear()===ano});
@@ -1126,6 +1133,8 @@ function renderEvolucao(ud){
   renderMetasView('mensal', ud);
   renderSugestaoMeta(ud);
   renderNotasProf(ud, document.getElementById('notas-search')?.value||'');
+  renderCorrecoesRecorrentes(ud);
+  renderTimeline(ud);
 }
 
 function renderSugestaoMeta(ud){
@@ -1166,6 +1175,377 @@ function renderNotasProf(ud, filtro){
       </div>
       <div style="font-size:13px;line-height:1.5">${escapeHtml(t.notaProf)}</div>
     </div>`).join('');
+}
+
+/* ===== MEU JOGO + FOCO DO DIA =====
+   Reaproveita POSICOES_DEFS, corPorRatio, treinosDaModalidade, calcSaldoBJJ, calcStreak.
+   Nenhum número é inventado: tudo vem dos treinos reais do usuário. */
+function aggPosStats(treinos, ap, sf){
+  return treinos.reduce((acc,x)=>{acc.a+=(x.stats?.[ap]||0);acc.s+=(x.stats?.[sf]||0);return acc},{a:0,s:0});
+}
+function detectarCorrecoesRepetidas(ud){
+  const notas=treinosDaModalidade(ud).filter(t=>t.notaProf && t.notaProf.trim());
+  const grupos={};
+  notas.forEach(t=>{
+    const chave=t.notaProf.trim().toLowerCase();
+    if(!grupos[chave]) grupos[chave]={texto:t.notaProf.trim(), pos:t.notaProfPos||'', count:0, ultima:t.data};
+    grupos[chave].count++;
+    if(new Date(t.data) > new Date(grupos[chave].ultima)) grupos[chave].ultima=t.data;
+    if(t.notaProfPos && !grupos[chave].pos) grupos[chave].pos=t.notaProfPos;
+  });
+  return Object.values(grupos).filter(g=>g.count>=2).sort((a,b)=>b.count-a.count || new Date(b.ultima)-new Date(a.ultima));
+}
+function statusCorrecao(ultima){
+  const dias=Math.round((new Date(today())-new Date(ultima))/86400000);
+  if(dias<=30) return {label:'Ativa', cls:'st-ativa'};
+  if(dias<=90) return {label:'Monitorando', cls:'st-monitorando'};
+  return {label:'Resolvida', cls:'st-resolvida'};
+}
+function renderCorrecoesRecorrentes(ud){
+  const wrap=document.getElementById('correcoes-recorrentes');
+  if(!wrap) return;
+  const lista=detectarCorrecoesRepetidas(ud);
+  if(!lista.length){ wrap.innerHTML=''; return; }
+  wrap.innerHTML=`
+    <div class="card" style="border-color:rgba(215,38,56,.25)">
+      <div class="card-title"><span><i class="ti ti-repeat" style="color:var(--red);margin-right:8px"></i>Correções Recorrentes</span><span class="card-badge badge-red">${lista.length}</span></div>
+      <div class="mj-list">
+        ${lista.map(c=>{
+          const st=statusCorrecao(c.ultima);
+          return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card2);border:1px solid var(--border);border-radius:9px">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;line-height:1.4;margin-bottom:3px">${escapeHtml(c.texto)}</div>
+              <div style="font-size:11px;color:var(--muted)">${c.pos?escapeHtml(c.pos)+' · ':''}corrigido ${c.count}× · última em ${formatarDataRelativa(c.ultima)}</div>
+            </div>
+            <span class="corr-status ${st.cls}">${st.label}</span>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+function computeTimeline(ud){
+  const treinos=[...treinosDaModalidade(ud)].sort((a,b)=>new Date(a.data)-new Date(b.data));
+  const comps=[...compsDaModalidade(ud)].sort((a,b)=>new Date(a.data)-new Date(b.data));
+  const totalTreinos=treinos.length;
+  const horasTreinadas=Math.round(totalMinutes(treinos)/6)/10;
+  const medalhas=comps.filter(c=>['ouro','prata','bronze'].includes(c.resultado)).length;
+
+  const datasUnicas=[...new Set(treinos.map(t=>t.data))].sort();
+  let maiorSeq=0, seqAtual=0, prevDate=null;
+  datasUnicas.forEach(d=>{
+    const dd=new Date(d);
+    seqAtual = prevDate && Math.round((dd-prevDate)/86400000)===1 ? seqAtual+1 : 1;
+    if(seqAtual>maiorSeq) maiorSeq=seqAtual;
+    prevDate=dd;
+  });
+
+  const eventos=[];
+  if(treinos.length){
+    eventos.push({data:treinos[0].data, icon:'ti-flag', titulo:'Primeiro treino registrado', desc:`${treinos[0].tipo||'treino'} · início da jornada no Life Jiu`});
+  }
+  [10,25,50,100,200,365,500,1000].forEach(marco=>{
+    if(treinos.length>=marco){
+      eventos.push({data:treinos[marco-1].data, icon:'ti-flag-2', titulo:`${marco} treinos completados`, desc:'Marco de volume de treino'});
+    }
+  });
+  comps.forEach(c=>{
+    const medalhaIcon = c.resultado==='ouro'?' 🥇':c.resultado==='prata'?' 🥈':c.resultado==='bronze'?' 🥉':'';
+    eventos.push({
+      data:c.data, icon:'ti-medal',
+      titulo:(c.nome||'Competição')+medalhaIcon,
+      desc:[c.cat, c.local, c.resultado?`resultado: ${c.resultado}`:(c.status||'')].filter(Boolean).join(' · ')
+    });
+  });
+  eventos.sort((a,b)=>new Date(b.data)-new Date(a.data));
+
+  return {totalTreinos, horasTreinadas, medalhas, maiorSeq, eventos};
+}
+function renderTimeline(ud){
+  const wrap=document.getElementById('timeline-evolucao');
+  if(!wrap) return;
+  const tl=computeTimeline(ud);
+  if(!tl.totalTreinos){
+    wrap.innerHTML=`<div class="empty-state"><i class="ti ti-timeline"></i><strong>Sua timeline começa no seu primeiro treino</strong><p>Registre seu primeiro treino para começar a construir sua linha do tempo de evolução.</p><button type="button" class="empty-cta" onclick="showScreen('registro')">+ Registrar treino</button></div>`;
+    return;
+  }
+  wrap.innerHTML=`
+    <div class="stats-row" style="margin-bottom:18px">
+      <div class="stat-card white"><div class="stat-label">Treinos totais</div><div class="stat-value">${tl.totalTreinos}</div></div>
+      <div class="stat-card gold"><div class="stat-label">Horas treinadas</div><div class="stat-value">${tl.horasTreinadas}h</div></div>
+      <div class="stat-card gold"><div class="stat-label">Medalhas</div><div class="stat-value">${tl.medalhas}</div></div>
+      <div class="stat-card teal"><div class="stat-label">Maior sequência</div><div class="stat-value">${tl.maiorSeq}d</div></div>
+    </div>
+    <div class="tl-list">
+      ${tl.eventos.map(e=>`
+        <div class="tl-item">
+          <div class="tl-dot"><i class="ti ${e.icon}"></i></div>
+          <div class="tl-content">
+            <div class="tl-date">${new Date(e.data+'T12:00').toLocaleDateString('pt-BR')}</div>
+            <div class="tl-titulo">${escapeHtml(e.titulo)}</div>
+            ${e.desc?`<div class="tl-desc">${escapeHtml(e.desc)}</div>`:''}
+          </div>
+        </div>`).join('')}
+    </div>
+  `;
+}
+function computeFocoDoDia(ud, pre){
+  const treinos=treinosDaModalidade(ud);
+  if(treinos.length<2){
+    return {titulo:'Comece a registrar',texto:'Registre pelo menos 2 treinos para o Life Jiu identificar seus pontos fortes, fracos e sugerir um foco real de treino.',tipo:'neutro',cta:'registro'};
+  }
+  const correcoes=pre?.correcoes || detectarCorrecoesRepetidas(ud);
+  if(correcoes.length){
+    const c=correcoes[0];
+    return {titulo:'Foco do dia',texto:`"${c.texto}"${c.pos?` (${c.pos})`:''} já foi corrigido pelo professor ${c.count}×. Priorize isso no treino de hoje.`,tipo:'correcao',cta:'registro'};
+  }
+  const fracos=pre?.pontosFracos!==undefined ? pre.pontosFracos : POSICOES_DEFS.map(p=>{
+    const {a,s}=aggPosStats(treinos,p.ap,p.sf); const total=a+s;
+    return {...p, total, ratio: total>0?a/total:null};
+  }).filter(p=>p.total>=3 && p.ratio!==null && p.ratio<0.45).sort((a,b)=>a.ratio-b.ratio);
+  if(fracos.length){
+    const p=fracos[0];
+    return {titulo:'Foco do dia',texto:`Sua posição mais frágil agora é ${p.nome}, com ${Math.round(p.ratio*100)}% de aproveitamento. Reserve parte do treino de hoje pra trabalhar nisso.`,tipo:'fraqueza',cta:'registro'};
+  }
+  const streak=calcStreak(ud.treinos||[]);
+  return {titulo:'Foco do dia',texto: streak>0 ? `Nenhum ponto crítico identificado agora. Foco em manter a consistência — você está numa sequência de ${streak} dia(s).` : 'Nenhum ponto crítico identificado no momento. Foque em manter a constância nos treinos.', tipo:'ok', cta: streak>0?null:'registro'};
+}
+function renderFocoDia(ud){
+  const el=document.getElementById('foco-dia-card');
+  if(!el) return;
+  const foco=computeFocoDoDia(ud);
+  const iconMap={correcao:'ti-chalkboard',fraqueza:'ti-target-arrow',ok:'ti-flame',neutro:'ti-dumbbell'};
+  el.className='foco-dia foco-'+foco.tipo;
+  el.innerHTML=`
+    <div class="foco-dia-icon"><i class="ti ${iconMap[foco.tipo]||'ti-bulb'}"></i></div>
+    <div class="foco-dia-body"><div class="foco-dia-label">Foco do dia</div><p>${escapeHtml(foco.texto)}</p></div>
+    ${foco.cta?`<button class="btn-sm foco-dia-cta" onclick="showScreen('${foco.cta}')"><i class="ti ti-plus-circle" style="font-size:12px"></i> Registrar treino</button>`:''}
+  `;
+}
+function computeMeuJogo(ud){
+  const treinos=treinosDaModalidade(ud);
+  const posStats=POSICOES_DEFS.map(p=>{
+    const {a,s}=aggPosStats(treinos,p.ap,p.sf); const total=a+s;
+    return {...p, a, s, total, ratio: total>0?a/total:null};
+  });
+  const comDados=posStats.filter(p=>p.total>0);
+  const favorita=comDados.length ? [...comDados].sort((x,y)=>y.total-x.total)[0] : null;
+  const principais=[...comDados].sort((x,y)=>y.total-x.total).slice(0,5);
+  const comAmostra=posStats.filter(p=>p.total>=3 && p.ratio!==null);
+  const pontosFortes=[...comAmostra].filter(p=>p.ratio>=0.6).sort((x,y)=>y.ratio-x.ratio).slice(0,4);
+  const pontosFracos=[...comAmostra].filter(p=>p.ratio<0.45).sort((x,y)=>x.ratio-y.ratio).slice(0,4);
+
+  const subCounts={};
+  treinos.forEach(t=>(t.subsAp||[]).forEach(s=>{ subCounts[s]=(subCounts[s]||0)+1 }));
+  const finalizacoes=Object.entries(subCounts).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([nome,qtd])=>({nome,qtd}));
+
+  const totalDef=treinos.reduce((a,x)=>a+(x.stats?.def||0),0);
+  const totalFinSf=treinos.reduce((a,x)=>a+(x.stats?.finSf||0),0);
+
+  const now=new Date();
+  const lim1=new Date(); lim1.setDate(now.getDate()-30);
+  const lim2=new Date(); lim2.setDate(now.getDate()-60);
+  const recentes=treinos.filter(t=>new Date(t.data)>=lim1);
+  const anteriores=treinos.filter(t=>{const d=new Date(t.data); return d>=lim2 && d<lim1});
+  let maiorEvolucao=null;
+  POSICOES_DEFS.forEach(p=>{
+    const r=aggPosStats(recentes,p.ap,p.sf), an=aggPosStats(anteriores,p.ap,p.sf);
+    const totR=r.a+r.s, totAn=an.a+an.s;
+    if(totR>=2 && totAn>=2){
+      const delta=(r.a/totR)-(an.a/totAn);
+      if(!maiorEvolucao || delta>maiorEvolucao.delta) maiorEvolucao={nome:p.nome, delta};
+    }
+  });
+
+  const correcoes=detectarCorrecoesRepetidas(ud);
+  const foco=computeFocoDoDia(ud, {correcoes, pontosFracos});
+
+  return {treinosTotal:treinos.length, favorita, principais, pontosFortes, pontosFracos, finalizacoes, totalDef, totalFinSf, maiorEvolucao, correcaoTopo:correcoes[0]||null, foco};
+}
+function renderMeuJogo(ud){
+  const wrap=document.getElementById('mj-content');
+  if(!wrap) return;
+  const mj=computeMeuJogo(ud);
+  if(mj.treinosTotal<2){
+    wrap.innerHTML=`<div class="card"><div class="empty-state"><i class="ti ti-chess-knight"></i><strong>Seu jogo ainda está em construção</strong><p>Registre pelo menos 2 treinos com posições e finalizações preenchidas para o Life Jiu mapear seu jogo.</p><button type="button" class="empty-cta" onclick="showScreen('registro')">+ Registrar treino</button></div></div>`;
+    return;
+  }
+  const pct=r=>r===null||r===undefined?'—':Math.round(r*100)+'%';
+  wrap.innerHTML=`
+    <div class="mj-hero">
+      <div class="mj-hero-item">
+        <div class="mj-hero-label">Posição favorita</div>
+        <div class="mj-hero-value">${mj.favorita?mj.favorita.nome:'—'}</div>
+        <div class="mj-hero-sub">${mj.favorita?`${mj.favorita.a} feitas · ${mj.favorita.s} sofridas`:'sem dados suficientes'}</div>
+      </div>
+      <div class="mj-hero-item">
+        <div class="mj-hero-label">Maior evolução (30 dias)</div>
+        <div class="mj-hero-value" style="color:var(--teal)">${mj.maiorEvolucao?mj.maiorEvolucao.nome:'—'}</div>
+        <div class="mj-hero-sub">${mj.maiorEvolucao?`${mj.maiorEvolucao.delta>=0?'+':''}${Math.round(mj.maiorEvolucao.delta*100)}% de aproveitamento`:'dados insuficientes para comparar'}</div>
+      </div>
+      <div class="mj-hero-item">
+        <div class="mj-hero-label">Principal ponto a melhorar</div>
+        <div class="mj-hero-value" style="color:var(--red)">${mj.correcaoTopo?(mj.correcaoTopo.pos||'Correção do professor'):(mj.pontosFracos[0]?mj.pontosFracos[0].nome:'—')}</div>
+        <div class="mj-hero-sub">${mj.correcaoTopo?`"${escapeHtml(mj.correcaoTopo.texto)}" — corrigido ${mj.correcaoTopo.count}×`:(mj.pontosFracos[0]?`${pct(mj.pontosFracos[0].ratio)} de aproveitamento`:'nenhum ponto crítico identificado')}</div>
+      </div>
+    </div>
+    <div class="foco-dia foco-${mj.foco.tipo}">
+      <div class="foco-dia-icon"><i class="ti ti-bulb"></i></div>
+      <div class="foco-dia-body"><div class="foco-dia-label">Próximo foco de treinamento</div><p>${escapeHtml(mj.foco.texto)}</p></div>
+    </div>
+    <div class="g2e">
+      <div class="card">
+        <div class="card-title">Principais posições <span class="card-badge badge-white">${mj.principais.length}</span></div>
+        ${mj.principais.length?`<div class="mj-list">${mj.principais.map(p=>`
+          <div class="mj-row">
+            <span class="mj-row-name">${p.nome}</span>
+            <div class="mj-row-bar"><div class="mj-row-fill" style="width:${Math.round((p.ratio||0)*100)}%;background:${corPorRatio(p.ratio).base}"></div></div>
+            <span class="mj-row-pct" style="color:${corPorRatio(p.ratio).base}">${pct(p.ratio)}</span>
+          </div>`).join('')}</div>`:`<div class="empty-mini">Sem dados de posição registrados ainda.</div>`}
+      </div>
+      <div class="card">
+        <div class="card-title">Finalizações mais usadas <span class="card-badge badge-red">${mj.finalizacoes.length}</span></div>
+        ${mj.finalizacoes.length?`<div class="mj-list">${mj.finalizacoes.map(f=>`
+          <div class="mj-row"><span class="mj-row-name" style="flex:1">${escapeHtml(f.nome)}</span><span class="mj-row-count">${f.qtd}×</span></div>`).join('')}</div>`:`<div class="empty-mini">Registre suas finalizações específicas no formulário de treino pra aparecer aqui.</div>`}
+      </div>
+    </div>
+    <div class="g2e">
+      <div class="card">
+        <div class="card-title">Pontos fortes <span class="card-badge badge-teal">${mj.pontosFortes.length}</span></div>
+        ${mj.pontosFortes.length?`<div class="mj-tags">${mj.pontosFortes.map(p=>`<span class="mj-tag mj-tag-strong">${p.nome} · ${pct(p.ratio)}</span>`).join('')}</div>`:`<div class="empty-mini">Ainda sem posições consolidadas (mín. 3 registros e 60%+ de aproveitamento).</div>`}
+      </div>
+      <div class="card">
+        <div class="card-title">Pontos fracos <span class="card-badge badge-red">${mj.pontosFracos.length}</span></div>
+        ${mj.pontosFracos.length?`<div class="mj-tags">${mj.pontosFracos.map(p=>`<span class="mj-tag mj-tag-weak">${p.nome} · ${pct(p.ratio)}</span>`).join('')}</div>`:`<div class="empty-mini">Nenhum ponto crítico identificado no momento. Bom sinal!</div>`}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Defesas &amp; Escapes</div>
+      <div class="mj-defrow">
+        <div><div class="mj-def-val">${mj.totalDef}</div><div class="mj-def-lbl">defesas bem-sucedidas</div></div>
+        <div><div class="mj-def-val" style="color:var(--red)">${mj.totalFinSf}</div><div class="mj-def-lbl">finalizações sofridas</div></div>
+      </div>
+    </div>
+  `;
+}
+
+/* ===== BIBLIOTECA TÉCNICA =====
+   CRUD manual + estatísticas cruzadas com os treinos reais (subsAp/subsSf).
+   "Vezes aplicada/sofrida" e "taxa de sucesso" só aparecem quando o nome da técnica
+   bate com alguma tag registrada nos treinos - nunca são inventadas. */
+function garantirBiblioteca(ud){
+  if(!ud.biblioteca) ud.biblioteca=[];
+  return ud.biblioteca;
+}
+function computeStatsTecnica(ud, nomeTecnica){
+  const treinos=treinosDaModalidade(ud);
+  const alvo=(nomeTecnica||'').trim().toLowerCase();
+  if(!alvo) return {aplicada:0, sofrida:0, taxa:null};
+  let aplicada=0, sofrida=0;
+  treinos.forEach(t=>{
+    (t.subsAp||[]).forEach(s=>{ if((s||'').trim().toLowerCase()===alvo) aplicada++; });
+    (t.subsSf||[]).forEach(s=>{ if((s||'').trim().toLowerCase()===alvo) sofrida++; });
+  });
+  const total=aplicada+sofrida;
+  return {aplicada, sofrida, taxa: total>0 ? Math.round((aplicada/total)*100) : null};
+}
+function openAddTecnica(){
+  document.getElementById('tecnica-modal-titulo').innerHTML=`Nova Técnica <button class="modal-close" onclick="closeModal('modal-tecnica')"><i class="ti ti-x"></i></button>`;
+  document.getElementById('tec-id').value='';
+  document.getElementById('tec-nome').value='';
+  document.getElementById('tec-categoria').value='Finalização';
+  document.getElementById('tec-posicao').value='';
+  document.getElementById('tec-nivel').value='aprendendo';
+  document.getElementById('tec-descricao').value='';
+  document.getElementById('tec-video').value='';
+  document.getElementById('tec-correcoes').value='';
+  document.getElementById('tec-obs').value='';
+  openModal('modal-tecnica');
+}
+function openEditTecnica(id){
+  const ud=getUserData();
+  const tec=garantirBiblioteca(ud).find(t=>t.id===id);
+  if(!tec) return;
+  document.getElementById('tecnica-modal-titulo').innerHTML=`Editar Técnica <button class="modal-close" onclick="closeModal('modal-tecnica')"><i class="ti ti-x"></i></button>`;
+  document.getElementById('tec-id').value=tec.id;
+  document.getElementById('tec-nome').value=tec.nome||'';
+  document.getElementById('tec-categoria').value=tec.categoria||'Finalização';
+  document.getElementById('tec-posicao').value=tec.posicao||'';
+  document.getElementById('tec-nivel').value=tec.nivel||'aprendendo';
+  document.getElementById('tec-descricao').value=tec.descricao||'';
+  document.getElementById('tec-video').value=tec.video||'';
+  document.getElementById('tec-correcoes').value=tec.correcoes||'';
+  document.getElementById('tec-obs').value=tec.obs||'';
+  openModal('modal-tecnica');
+}
+function saveTecnica(){
+  const nome=document.getElementById('tec-nome').value.trim();
+  if(!nome){ toast('Dê um nome para a técnica.','error'); return; }
+  const ud=getUserData();
+  garantirBiblioteca(ud);
+  const id=document.getElementById('tec-id').value;
+  const dados={
+    nome, esporte: ud.profile.esporte||'jiu-jitsu',
+    categoria: document.getElementById('tec-categoria').value,
+    posicao: document.getElementById('tec-posicao').value.trim(),
+    nivel: document.getElementById('tec-nivel').value,
+    descricao: document.getElementById('tec-descricao').value.trim(),
+    video: document.getElementById('tec-video').value.trim(),
+    correcoes: document.getElementById('tec-correcoes').value.trim(),
+    obs: document.getElementById('tec-obs').value.trim(),
+  };
+  if(id){
+    const idx=ud.biblioteca.findIndex(t=>t.id===id);
+    if(idx>=0) ud.biblioteca[idx]={...ud.biblioteca[idx], ...dados};
+  } else {
+    ud.biblioteca.push({id:'tec'+Date.now(), ...dados});
+  }
+  saveUserData(ud); closeModal('modal-tecnica'); renderBiblioteca(ud); toast(id?'Técnica atualizada!':'Técnica adicionada à biblioteca!');
+}
+function deleteTecnica(id){
+  if(!confirm('Remover essa técnica da biblioteca?')) return;
+  const ud=getUserData();
+  ud.biblioteca=garantirBiblioteca(ud).filter(t=>t.id!==id);
+  saveUserData(ud); renderBiblioteca(ud); toast('Técnica removida.');
+}
+const NIVEL_LABEL={aprendendo:'Aprendendo', confiavel:'Confiável', domino:'Domino bem'};
+function renderBiblioteca(ud){
+  const wrap=document.getElementById('bib-lista');
+  if(!wrap) return;
+  const esp=ud.profile.esporte||'jiu-jitsu';
+  let lista=garantirBiblioteca(ud).filter(t=>(t.esporte||'jiu-jitsu')===esp);
+  const termo=(document.getElementById('bib-search')?.value||'').trim().toLowerCase();
+  const cat=document.getElementById('bib-filtro-cat')?.value||'';
+  if(termo) lista=lista.filter(t=>(t.nome||'').toLowerCase().includes(termo) || (t.posicao||'').toLowerCase().includes(termo) || (t.obs||'').toLowerCase().includes(termo));
+  if(cat) lista=lista.filter(t=>t.categoria===cat);
+  lista=[...lista].sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+  if(!lista.length){
+    wrap.innerHTML=`<div class="card"><div class="empty-state"><i class="ti ti-notebook"></i><strong>${garantirBiblioteca(ud).length?'Nenhuma técnica encontrada':'Sua biblioteca está vazia'}</strong><p>${garantirBiblioteca(ud).length?'Tente outro termo de busca ou categoria.':'Adicione as técnicas que você está estudando para acompanhar domínio, correções e uso real nos treinos.'}</p><button type="button" class="empty-cta" onclick="openAddTecnica()">+ Nova técnica</button></div></div>`;
+    return;
+  }
+  wrap.innerHTML=lista.map(t=>{
+    const st=computeStatsTecnica(ud, t.nome);
+    return `<div class="bib-card">
+      <div class="bib-card-head">
+        <div>
+          <div class="bib-card-nome">${escapeHtml(t.nome)}</div>
+          <div class="bib-card-pos">${escapeHtml(t.categoria||'')}${t.posicao?' · '+escapeHtml(t.posicao):''}</div>
+        </div>
+        <span class="bib-nivel ${t.nivel||'aprendendo'}">${NIVEL_LABEL[t.nivel]||'Aprendendo'}</span>
+      </div>
+      ${t.descricao?`<div class="bib-card-desc">${escapeHtml(t.descricao)}</div>`:''}
+      ${t.correcoes?`<div class="bib-card-desc" style="color:var(--red)"><i class="ti ti-chalkboard" style="font-size:12px;margin-right:4px"></i>${escapeHtml(t.correcoes)}</div>`:''}
+      ${t.video?`<a href="${escapeHtml(t.video)}" target="_blank" rel="noopener" class="bib-card-link"><i class="ti ti-external-link"></i> Referência</a>`:''}
+      <div class="bib-card-stats">
+        <span>Aplicada: <strong>${st.aplicada}×</strong></span>
+        <span>Sofrida: <strong>${st.sofrida}×</strong></span>
+        <span>Taxa: <strong>${st.taxa!==null?st.taxa+'%':'sem dados'}</strong></span>
+      </div>
+      <div class="bib-card-actions">
+        <button onclick="openEditTecnica('${t.id}')"><i class="ti ti-edit" style="font-size:12px"></i> Editar</button>
+        <button class="bib-del" onclick="deleteTecnica('${t.id}')"><i class="ti ti-trash" style="font-size:12px"></i> Remover</button>
+      </div>
+    </div>`;
+  }).join('');
 }
 function renderMetasView(tipo, ud){
   const el=document.getElementById(`metas-${tipo==='semanal'?'semanais':'mensais'}-view`);
@@ -1346,6 +1726,7 @@ function renderIA(ud){
   const t=treinosDaModalidade(ud);
   detectarPlato(ud);
   renderPlanoAcao(ud);
+  renderCoachPadroes(ud);
   if(!t.length){
     document.getElementById('ia-resumo').textContent='Registre treinos para receber análises personalizadas.';
     document.getElementById('ia-fortes').innerHTML='<div style="font-size:12px;color:var(--muted);padding:8px;background:var(--teal-dim);border-radius:8px">Dados insuficientes ainda.</div>';
@@ -1386,6 +1767,68 @@ function renderIA(ud){
       <div class="ai-icon" style="background:${r.bg};color:${r.c}"><i class="ti ${r.icon}"></i></div>
       <div class="ai-text"><strong>${r.title}</strong><p>${r.desc}</p></div>
     </div>`).join('');
+}
+/* ===== COACH IA: PADRÕES TÉCNICOS =====
+   Usa exclusivamente dados reais dos treinos (subsAp/subsSf, stats.finAp/finSf).
+   Sem amostra suficiente, retorna null -> "Dados insuficientes para gerar esta análise." */
+function computeCoachPadroes(ud){
+  const treinos=treinosDaModalidade(ud);
+  if(treinos.length<3) return null;
+  const subCountsAp={}, subCountsSf={};
+  treinos.forEach(t=>{
+    (t.subsAp||[]).forEach(s=>subCountsAp[s]=(subCountsAp[s]||0)+1);
+    (t.subsSf||[]).forEach(s=>subCountsSf[s]=(subCountsSf[s]||0)+1);
+  });
+  const tecnicasEficientes=Object.entries(subCountsAp).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([nome,qtd])=>({nome,qtd}));
+  const tecnicasPoucoUsadas=Object.entries(subCountsAp).filter(([,q])=>q===1).map(([nome])=>nome).slice(0,5);
+  const padroesDerrota=Object.entries(subCountsSf).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([nome,qtd])=>({nome,qtd}));
+
+  const now=new Date();
+  const lim1=new Date(); lim1.setDate(now.getDate()-30);
+  const lim2=new Date(); lim2.setDate(now.getDate()-60);
+  const recentes=treinos.filter(t=>new Date(t.data)>=lim1);
+  const anteriores=treinos.filter(t=>{const d=new Date(t.data); return d>=lim2 && d<lim1});
+  const aggFin=list=>{
+    const ap=list.reduce((a,x)=>a+(x.stats?.finAp||0),0);
+    const sf=list.reduce((a,x)=>a+(x.stats?.finSf||0),0);
+    return {ap, sf, total:ap+sf, ratio:(ap+sf)>0?ap/(ap+sf):null};
+  };
+  const rec=aggFin(recentes), ant=aggFin(anteriores);
+  let tendencia=null;
+  if(rec.total>=3 && ant.total>=3 && rec.ratio!==null && ant.ratio!==null){
+    const delta=rec.ratio-ant.ratio;
+    tendencia={delta, direcao: delta>=0.05?'melhora':(delta<=-0.05?'queda':'estavel')};
+  }
+  return {tecnicasEficientes, tecnicasPoucoUsadas, padroesDerrota, tendencia};
+}
+function renderCoachPadroes(ud){
+  const wrap=document.getElementById('coach-padroes');
+  if(!wrap) return;
+  const cp=computeCoachPadroes(ud);
+  if(!cp){ wrap.innerHTML=`<div style="font-size:12px;color:var(--muted);padding:8px">Dados insuficientes para gerar esta análise.</div>`; return; }
+  let tendenciaHtml='';
+  if(cp.tendencia){
+    const map={
+      melhora:{icon:'ti-trending-up', cor:'var(--teal)', bg:'var(--teal-dim)', txt:`Seu aproveitamento em finalizações melhorou ${Math.round(cp.tendencia.delta*100)} pontos percentuais nos últimos 30 dias em relação aos 30 anteriores.`},
+      queda:{icon:'ti-trending-down', cor:'var(--red)', bg:'var(--red-dim)', txt:`Seu aproveitamento em finalizações caiu ${Math.round(Math.abs(cp.tendencia.delta)*100)} pontos percentuais nos últimos 30 dias. Vale revisar o que mudou nos treinos recentes.`},
+      estavel:{icon:'ti-minus', cor:'var(--gold)', bg:'var(--gold-dim)', txt:'Seu aproveitamento em finalizações está estável entre os últimos dois períodos de 30 dias.'}
+    };
+    const m=map[cp.tendencia.direcao];
+    tendenciaHtml=`<div style="display:flex;align-items:center;gap:9px;font-size:13px;padding:10px 12px;background:${m.bg};border-radius:9px;margin-bottom:12px"><i class="ti ${m.icon}" style="color:${m.cor}"></i>${m.txt}</div>`;
+  }
+  wrap.innerHTML = tendenciaHtml + `
+    <div class="g2e">
+      <div>
+        <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Técnicas mais eficientes</div>
+        ${cp.tecnicasEficientes.length?`<div class="mj-tags">${cp.tecnicasEficientes.map(t=>`<span class="mj-tag mj-tag-strong">${escapeHtml(t.nome)} · ${t.qtd}×</span>`).join('')}</div>`:`<div class="empty-mini">Registre suas finalizações específicas para aparecer aqui.</div>`}
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Padrões de derrota</div>
+        ${cp.padroesDerrota.length?`<div class="mj-tags">${cp.padroesDerrota.map(t=>`<span class="mj-tag mj-tag-weak">${escapeHtml(t.nome)} · ${t.qtd}×</span>`).join('')}</div>`:`<div class="empty-mini">Nenhuma finalização sofrida registrada com nome específico.</div>`}
+      </div>
+    </div>
+    ${cp.tecnicasPoucoUsadas.length?`<div style="margin-top:12px"><div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Técnicas pouco exploradas <span style="opacity:.7">(testadas 1 vez)</span></div><div class="mj-tags">${cp.tecnicasPoucoUsadas.map(n=>`<span class="mj-tag" style="background:var(--card2);color:var(--muted);border:1px solid var(--border)">${escapeHtml(n)}</span>`).join('')}</div></div>`:''}
+  `;
 }
 function garantirPlanoAcao(ud){
   if(!ud.planoAcaoFeito) ud.planoAcaoFeito={};
