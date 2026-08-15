@@ -93,6 +93,8 @@
   <nav class="sidebar">
     <div class="logo-mark" onclick="showScreen('dashboard')">LJ</div>
     <button type="button" class="nav-item active" aria-label="Dashboard" onclick="showScreen('dashboard')"><i class="ti ti-layout-dashboard"></i><span class="tip">Dashboard</span></button>
+    <button type="button" class="nav-item" aria-label="Meu Jogo" onclick="showScreen('meujogo')"><i class="ti ti-target-arrow"></i><span class="tip">Meu Jogo</span></button>
+    <button type="button" class="nav-item" aria-label="Biblioteca Técnica" onclick="showScreen('biblioteca')"><i class="ti ti-notebook"></i><span class="tip">Biblioteca</span></button>
     <button type="button" class="nav-item" aria-label="Registrar Treino" onclick="showScreen('registro')"><i class="ti ti-plus-circle">RT</i><span class="tip">Registrar Treino</span></button>
     <button type="button" class="nav-item" aria-label="Rendimento" onclick="showScreen('rendimento')"><i class="ti ti-chart-infographic"></i><span class="tip">Rendimento</span></button>
     <button type="button" class="nav-item" aria-label="Evolução" onclick="showScreen('evolucao')"><i class="ti ti-trophy"></i><span class="tip">Evolução</span></button>
@@ -120,6 +122,7 @@
           <div class="avatar" id="topbar-av" onclick="showScreen('perfil')">—</div>
         </div>
       </div>
+      <div class="foco-dia" id="foco-dia-card"></div>
       <div class="stats-row">
         <div class="stat-card red" onclick="showScreen('registro')">
           <div class="stat-label">Treinos este mês</div>
@@ -197,6 +200,34 @@
           <span>Mais</span>
         </div>
       </div>
+    </div>
+    <div class="screen" id="screen-meujogo">
+      <div class="topbar">
+        <div class="topbar-left"><h1>Meu Jogo</h1><p>Seu estilo, mapeado a partir dos treinos reais</p></div>
+      </div>
+      <div id="mj-content"></div>
+    </div>
+    <div class="screen" id="screen-biblioteca">
+      <div class="topbar">
+        <div class="topbar-left"><h1>Biblioteca Técnica</h1><p>Seu repertório pessoal de técnicas</p></div>
+        <button class="btn-primary" onclick="openAddTecnica()" style="width:auto;padding:10px 18px"><i class="ti ti-plus"></i> Nova técnica</button>
+      </div>
+      <div class="card" style="margin-bottom:14px">
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <input type="text" id="bib-search" class="fi" style="flex:2;min-width:180px" placeholder="Buscar por nome, posição ou observação..." oninput="renderBiblioteca(getUserData())">
+          <select id="bib-filtro-cat" class="fi" style="flex:1;min-width:150px" onchange="renderBiblioteca(getUserData())">
+            <option value="">Todas as categorias</option>
+            <option value="Finalização">Finalização</option>
+            <option value="Passagem">Passagem</option>
+            <option value="Raspagem">Raspagem</option>
+            <option value="Queda">Queda</option>
+            <option value="Defesa">Defesa</option>
+            <option value="Controle">Controle</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </div>
+      </div>
+      <div id="bib-lista" class="bib-grid"></div>
     </div>
     <div class="screen" id="screen-registro">
       <div class="topbar">
@@ -517,6 +548,7 @@
         </div>
       </div>
       <div id="meta-sugestao-wrap" style="margin-bottom:12px"></div>
+      <div id="correcoes-recorrentes" style="margin-bottom:14px"></div>
       <div class="card">
         <div class="card-title">
           <span><i class="ti ti-chalkboard" style="color:var(--red);margin-right:8px"></i>Notas do Professor</span>
@@ -524,6 +556,10 @@
         </div>
         <input type="text" id="notas-search" class="fi" placeholder="Buscar por posição ou palavra-chave..." style="margin-bottom:11px" oninput="renderNotasProf(getUserData(), this.value)">
         <div id="notas-prof-list" style="display:flex;flex-direction:column;gap:9px"></div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <div class="card-title"><span><i class="ti ti-timeline" style="color:var(--gold);margin-right:8px"></i>Timeline de Evolução</span></div>
+        <div id="timeline-evolucao"></div>
       </div>
     </div>
     <div class="screen" id="screen-fisico">
@@ -585,6 +621,13 @@
         <div id="ia-resumo" style="font-size:13px;color:var(--muted);line-height:1.65;padding:13px;background:var(--card2);border-radius:9px;border:1px solid var(--border)">
           Registre treinos para receber análises personalizadas.
         </div>
+      </div>
+      <div class="card" style="margin-bottom:12px;border-color:rgba(244,185,66,.25)" id="coach-padroes-card">
+        <div class="card-title">
+          <span><i class="ti ti-chess-knight" style="color:var(--gold);margin-right:8px"></i>Padrões Técnicos</span>
+          <span class="card-badge badge-white">Baseado em regras locais</span>
+        </div>
+        <div id="coach-padroes"><div style="font-size:12px;color:var(--muted);padding:8px">Dados insuficientes para gerar esta análise.</div></div>
       </div>
       <div class="g2e" style="margin-bottom:12px">
         <div class="card" style="border-color:rgba(31,200,180,.2)">
@@ -779,6 +822,39 @@
     <h2 id="modal-metas-title">Metas <button class="modal-close" onclick="closeModal('modal-metas')"><i class="ti ti-x"></i></button></h2>
     <div id="metas-edit-fields"></div>
     <button class="btn-primary" onclick="saveMetas()">Salvar metas</button>
+  </div>
+</div>
+<div class="modal-bg hidden" id="modal-tecnica">
+  <div class="modal">
+    <h2 id="tecnica-modal-titulo">Nova Técnica <button class="modal-close" onclick="closeModal('modal-tecnica')"><i class="ti ti-x"></i></button></h2>
+    <input type="hidden" id="tec-id">
+    <div class="fg"><label class="fl">Nome da técnica</label><input type="text" id="tec-nome" class="fi" placeholder="Ex: Triângulo da guarda fechada"></div>
+    <div class="fr">
+      <div class="fg"><label class="fl">Categoria</label>
+        <select id="tec-categoria" class="fi">
+          <option value="Finalização">Finalização</option>
+          <option value="Passagem">Passagem</option>
+          <option value="Raspagem">Raspagem</option>
+          <option value="Queda">Queda</option>
+          <option value="Defesa">Defesa</option>
+          <option value="Controle">Controle</option>
+          <option value="Outro">Outro</option>
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Posição</label><input type="text" id="tec-posicao" class="fi" placeholder="Ex: Guarda Fechada"></div>
+    </div>
+    <div class="fg"><label class="fl">Nível de domínio</label>
+      <select id="tec-nivel" class="fi">
+        <option value="aprendendo">Aprendendo</option>
+        <option value="confiavel">Confiável</option>
+        <option value="domino">Domino bem</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Descrição</label><textarea id="tec-descricao" class="fi" rows="2" placeholder="Como funciona o movimento, detalhes-chave..."></textarea></div>
+    <div class="fg"><label class="fl">Vídeo/link de referência (opcional)</label><input type="text" id="tec-video" class="fi" placeholder="https://..."></div>
+    <div class="fg"><label class="fl">Correções do professor</label><textarea id="tec-correcoes" class="fi" rows="2" placeholder="O que já foi corrigido nessa técnica"></textarea></div>
+    <div class="fg"><label class="fl">Observações</label><textarea id="tec-obs" class="fi" rows="2" placeholder="Anotações livres"></textarea></div>
+    <button class="btn-primary" onclick="saveTecnica()">Salvar técnica</button>
   </div>
 </div>
 <div class="modal-bg hidden" id="modal-comp">
