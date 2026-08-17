@@ -455,7 +455,8 @@ function refreshAll(){
 }
 
 const SCREENS = ['dashboard','meujogo','biblioteca','registro','rendimento','evolucao','fisico','competicoes','ia','social','perfil'];
-const SCREENS_TOP_COUNT = 10; // itens da sidebar principal (exclui perfil/sair, que ficam em nav-bottom)
+const SCREENS_TOP_COUNT = 10;
+const MOBILE_OVERFLOW_SCREENS = ['biblioteca','rendimento','fisico','competicoes','ia','social'];
 function showScreen(name){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
@@ -470,10 +471,30 @@ function showScreen(name){
     b.removeAttribute('aria-current');
     if(b.dataset.bn===name) b.setAttribute('aria-current','page');
   });
+  const moreBtn=document.getElementById('mobile-more-btn');
+  if(moreBtn) moreBtn.classList.toggle('active', MOBILE_OVERFLOW_SCREENS.includes(name));
+  closeMobileMore();
   if(name==='rendimento') renderRendimento(getUserData());
   if(name==='fisico') renderFisico(getUserData());
   if(name==='meujogo') renderMeuJogo(getUserData());
   if(name==='biblioteca') renderBiblioteca(getUserData());
+}
+function toggleMobileMore(){
+  const sheet=document.getElementById('mobile-more-sheet');
+  const backdrop=document.getElementById('mobile-more-backdrop');
+  if(!sheet||!backdrop) return;
+  const show=!sheet.classList.contains('show');
+  sheet.classList.toggle('show', show);
+  backdrop.classList.toggle('show', show);
+}
+function closeMobileMore(){
+  const sheet=document.getElementById('mobile-more-sheet');
+  const backdrop=document.getElementById('mobile-more-backdrop');
+  if(sheet) sheet.classList.remove('show');
+  if(backdrop) backdrop.classList.remove('show');
+}
+function showScreenFromMore(name){
+  showScreen(name);
 }
 
 function initials(name){ return name.split(' ').map(w=>w[0]||'').slice(0,2).join('').toUpperCase()||'?' }
@@ -1177,9 +1198,6 @@ function renderNotasProf(ud, filtro){
     </div>`).join('');
 }
 
-/* ===== MEU JOGO + FOCO DO DIA =====
-   Reaproveita POSICOES_DEFS, corPorRatio, treinosDaModalidade, calcSaldoBJJ, calcStreak.
-   Nenhum número é inventado: tudo vem dos treinos reais do usuário. */
 function aggPosStats(treinos, ap, sf){
   return treinos.reduce((acc,x)=>{acc.a+=(x.stats?.[ap]||0);acc.s+=(x.stats?.[sf]||0);return acc},{a:0,s:0});
 }
@@ -1249,10 +1267,9 @@ function computeTimeline(ud){
     }
   });
   comps.forEach(c=>{
-    const medalhaIcon = c.resultado==='ouro'?' 🥇':c.resultado==='prata'?' 🥈':c.resultado==='bronze'?' 🥉':'';
     eventos.push({
       data:c.data, icon:'ti-medal',
-      titulo:(c.nome||'Competição')+medalhaIcon,
+      titulo:(c.nome||'Competição'),
       desc:[c.cat, c.local, c.resultado?`resultado: ${c.resultado}`:(c.status||'')].filter(Boolean).join(' · ')
     });
   });
@@ -1428,10 +1445,6 @@ function renderMeuJogo(ud){
   `;
 }
 
-/* ===== BIBLIOTECA TÉCNICA =====
-   CRUD manual + estatísticas cruzadas com os treinos reais (subsAp/subsSf).
-   "Vezes aplicada/sofrida" e "taxa de sucesso" só aparecem quando o nome da técnica
-   bate com alguma tag registrada nos treinos - nunca são inventadas. */
 function garantirBiblioteca(ud){
   if(!ud.biblioteca) ud.biblioteca=[];
   return ud.biblioteca;
@@ -1629,6 +1642,148 @@ function renderFisico(ud){
     ctx.fillStyle='rgba(245,239,239,.3)';ctx.font='13px DM Sans';ctx.textAlign='center';
     ctx.fillText('Atualize seu peso para ver a evolução aqui.',ctx.canvas.width/2,50);
   }
+  renderRecovery(ud);
+  renderTrainingLoad(ud);
+  renderDashboardChips(ud);
+}
+
+function calcSessionLoad(t){
+  return (t.duracaoMin||0) * (t.intensidade||5);
+}
+function computeTrainingLoad(ud){
+  const treinos=treinosDaModalidade(ud);
+  const now=new Date();
+  const d7=new Date(now); d7.setDate(now.getDate()-7);
+  const d14=new Date(now); d14.setDate(now.getDate()-14);
+  const atual=treinos.filter(t=>new Date(t.data)>=d7);
+  const anterior=treinos.filter(t=>{const d=new Date(t.data); return d>=d14 && d<d7});
+  const cargaAtual=atual.reduce((a,t)=>a+calcSessionLoad(t),0);
+  const cargaAnterior=anterior.reduce((a,t)=>a+calcSessionLoad(t),0);
+  let variacaoPct=null, tendencia='sem_dados', alerta=false;
+  if(cargaAnterior>0){
+    variacaoPct=Math.round(((cargaAtual-cargaAnterior)/cargaAnterior)*100);
+    tendencia = variacaoPct>15?'aumento':(variacaoPct<-15?'reducao':'estavel');
+    alerta = Math.abs(variacaoPct)>=50 && cargaAnterior>=60;
+  } else if(cargaAtual>0){
+    tendencia='aumento';
+  }
+  return {
+    cargaAtual, cargaAnterior, variacaoPct, tendencia, alerta,
+    sessoesAtual: atual.length, sessoesAnterior: anterior.length,
+    durMedia: atual.length ? Math.round(atual.reduce((a,t)=>a+(t.duracaoMin||0),0)/atual.length) : 0,
+    intMedia: atual.length ? +(atual.reduce((a,t)=>a+(t.intensidade||0),0)/atual.length).toFixed(1) : 0
+  };
+}
+function renderTrainingLoad(ud){
+  const wrap=document.getElementById('load-content');
+  if(!wrap) return;
+  const tl=computeTrainingLoad(ud);
+  if(!tl.sessoesAtual && !tl.sessoesAnterior){
+    wrap.innerHTML=`<div class="empty-mini">Registre treinos com data, duração e intensidade para acompanhar sua carga de treinamento.</div>`;
+    return;
+  }
+  const trendMap={
+    aumento:{icon:'ti-trending-up', txt:tl.variacaoPct!==null?`Carga subiu ${tl.variacaoPct}% em relação à semana anterior.`:'Primeira semana com dados de carga.'},
+    reducao:{icon:'ti-trending-down', txt:`Carga caiu ${Math.abs(tl.variacaoPct)}% em relação à semana anterior.`},
+    estavel:{icon:'ti-minus', txt:'Carga estável em relação à semana anterior.'},
+    sem_dados:{icon:'ti-info-circle', txt:'Ainda sem dados da semana anterior para comparar.'}
+  };
+  const tm=trendMap[tl.tendencia];
+  const cls=tl.alerta?'alerta':tl.tendencia;
+  wrap.innerHTML=`
+    <div class="load-stats-mini">
+      <div><div class="load-mini-val">${tl.cargaAtual}</div><div class="load-mini-lbl">carga atual (7d)</div></div>
+      <div><div class="load-mini-val" style="color:var(--muted)">${tl.cargaAnterior}</div><div class="load-mini-lbl">carga anterior (7d)</div></div>
+      <div><div class="load-mini-val">${tl.sessoesAtual}</div><div class="load-mini-lbl">sessões (7d)</div></div>
+    </div>
+    <div class="load-trend ${cls}"><i class="ti ${tl.alerta?'ti-alert-triangle':tm.icon}"></i>${tl.alerta?`Mudança brusca de carga (${tl.variacaoPct>0?'+':''}${tl.variacaoPct}%) em relação à semana anterior. Considere ajustar o volume para reduzir risco de lesão.`:tm.txt}</div>
+    <div class="rc-disclaimer">Carga = duração × intensidade percebida de cada treino (método sRPE). Um indicador de volume/intensidade, não um diagnóstico.</div>
+  `;
+}
+
+function computeRecovery(ud){
+  const f=ud.fisico||{};
+  const treinos=treinosDaModalidade(ud);
+  if(!treinos.length) return null;
+  const ultimo=[...treinos].sort((a,b)=>new Date(b.data)-new Date(a.data))[0];
+  const diasDescanso=Math.round((new Date(today())-new Date(ultimo.data))/86400000);
+  const tl=computeTrainingLoad(ud);
+
+  let pontos=0, max=0, fatores=[];
+  if(f.sono){
+    max+=2;
+    if(f.sono>=7){ pontos+=2; fatores.push({txt:`Sono de ${f.sono}h — dentro da faixa recomendada`, sinal:'pos', icon:'ti-moon'}); }
+    else if(f.sono>=5.5){ pontos+=1; fatores.push({txt:`Sono de ${f.sono}h — um pouco abaixo do ideal`, sinal:'neutro', icon:'ti-moon'}); }
+    else { fatores.push({txt:`Sono de ${f.sono}h — bem abaixo do recomendado`, sinal:'neg', icon:'ti-moon'}); }
+  }
+  if(f.hidra){
+    max+=1;
+    if(f.hidra>=2.5){ pontos+=1; fatores.push({txt:`Hidratação de ${f.hidra}L hoje`, sinal:'pos', icon:'ti-droplet'}); }
+    else { fatores.push({txt:`Hidratação de ${f.hidra}L hoje — abaixo do ideal`, sinal:'neg', icon:'ti-droplet'}); }
+  }
+  max+=2;
+  if(diasDescanso<=0){ fatores.push({txt:'Treinou hoje — corpo ainda em recuperação da sessão', sinal:'neutro', icon:'ti-bed'}); }
+  else if(diasDescanso===1){ pontos+=1; fatores.push({txt:'1 dia de descanso desde o último treino', sinal:'pos', icon:'ti-bed'}); }
+  else { pontos+=2; fatores.push({txt:`${diasDescanso} dias de descanso desde o último treino`, sinal:'pos', icon:'ti-bed'}); }
+  max+=1;
+  if(tl.alerta){ fatores.push({txt:`Carga de treino com mudança brusca recente (${tl.variacaoPct>0?'+':''}${tl.variacaoPct}%)`, sinal:'neg', icon:'ti-gauge'}); }
+  else if(tl.tendencia==='aumento'){ fatores.push({txt:'Carga de treino em alta esta semana', sinal:'neutro', icon:'ti-gauge'}); pontos+=0.3; }
+  else { pontos+=1; fatores.push({txt: tl.tendencia==='reducao'?'Carga de treino em queda esta semana':'Carga de treino estável esta semana', sinal:'pos', icon:'ti-gauge'}); }
+  if(f.fc){ fatores.push({txt:`FC de repouso: ${f.fc} bpm`, sinal:'info', icon:'ti-heartbeat'}); }
+
+  const pct=max>0 ? Math.max(0,Math.min(100,Math.round((pontos/max)*100))) : 50;
+  const nivel = pct>=70?'boa':(pct>=40?'moderada':'baixa');
+  return {pct, nivel, fatores, diasDescanso};
+}
+function renderRecovery(ud){
+  const wrap=document.getElementById('recovery-content');
+  if(!wrap) return;
+  const rc=computeRecovery(ud);
+  if(!rc){
+    wrap.innerHTML=`<div class="empty-mini">Registre treinos e atualize seus dados físicos (sono, hidratação) para ver seu indicador de recuperação.</div>`;
+    return;
+  }
+  const nivelLabel={boa:'Boa', moderada:'Moderada', baixa:'Baixa'};
+  const cor={boa:'var(--teal)', moderada:'var(--gold)', baixa:'var(--red)'}[rc.nivel];
+  const circ=2*Math.PI*36;
+  const dash=(rc.pct/100)*circ;
+  wrap.innerHTML=`
+    <div class="rc-ring-wrap">
+      <div class="rc-ring">
+        <svg width="84" height="84" viewBox="0 0 84 84">
+          <circle cx="42" cy="42" r="36" fill="none" stroke="var(--border)" stroke-width="8"/>
+          <circle cx="42" cy="42" r="36" fill="none" stroke="${cor}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${dash} ${circ}"/>
+        </svg>
+        <div class="rc-ring-val">${rc.pct}</div>
+      </div>
+      <div>
+        <div class="rc-nivel ${rc.nivel}">Recuperação ${nivelLabel[rc.nivel]}</div>
+        <div class="rc-sub">${rc.diasDescanso<=0?'Treinou hoje':rc.diasDescanso===1?'1 dia sem treinar':rc.diasDescanso+' dias sem treinar'}</div>
+      </div>
+    </div>
+    <div class="rc-fatores">
+      ${rc.fatores.map(f=>`<div class="rc-fator ${f.sinal}"><i class="ti ${f.icon}"></i>${escapeHtml(f.txt)}</div>`).join('')}
+    </div>
+    <div class="rc-disclaimer">Indicador de bem-estar baseado nos seus dados de sono, hidratação, descanso e carga de treino. Não é um diagnóstico médico — em caso de dor, lesão ou mal-estar, procure um profissional de saúde.</div>
+  `;
+}
+function renderDashboardChips(ud){
+  const wrap=document.getElementById('rc-chips-dash');
+  if(!wrap) return;
+  const rc=computeRecovery(ud);
+  const tl=computeTrainingLoad(ud);
+  if(!rc && !tl.sessoesAtual){ wrap.innerHTML=''; return; }
+  const chips=[];
+  if(rc){
+    const nivelLabel={boa:'Boa', moderada:'Moderada', baixa:'Baixa'};
+    chips.push(`<div class="rc-chip rc-${rc.nivel}" onclick="showScreen('fisico')"><i class="ti ti-battery-charging"></i>Recuperação: <strong>${nivelLabel[rc.nivel]}</strong></div>`);
+  }
+  if(tl.sessoesAtual || tl.sessoesAnterior){
+    const cargaLabel={aumento:'Em alta', reducao:'Em queda', estavel:'Estável', sem_dados:'Sem histórico'};
+    const cls=tl.alerta?'alerta':tl.tendencia;
+    chips.push(`<div class="rc-chip rc-${cls}" onclick="showScreen('fisico')"><i class="ti ti-gauge"></i>Carga: <strong>${cargaLabel[tl.tendencia]}</strong></div>`);
+  }
+  wrap.innerHTML=chips.join('');
 }
 
 function renderComps(ud){
@@ -1651,6 +1806,7 @@ function renderComps(ud){
               <span class="card-badge badge-red">${c.status==='proximo'?'Próximo':'Planejado'}</span>
               ${c.cat?`<span class="card-badge badge-gold" style="margin-left:4px">${escapeHtml(c.cat)}</span>`:''}
             </div>
+            ${c.objetivo?`<div style="font-size:11.5px;color:var(--muted);margin-top:7px"><i class="ti ti-target" style="font-size:12px;margin-right:4px"></i>${escapeHtml(c.objetivo)}</div>`:''}
           </div>
           <div>
             <div class="countdown">${diff>=0?diff:'—'}<span>dias restantes</span></div>
@@ -1659,6 +1815,12 @@ function renderComps(ud){
         </div>
         <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px"><span>Preparação</span><span>${pct}%</span></div>
         <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+        <div class="camp-toggle-row">
+          <button onclick="toggleCampPanel('${c.id}')"><i class="ti ti-clipboard-list"></i> Camp Mode</button>
+          <button onclick="toggleAdvPanel('${c.id}')"><i class="ti ti-swords"></i> Adversários (${(c.adversarios||[]).length})</button>
+        </div>
+        <div class="camp-panel hidden" id="camp-panel-${c.id}"></div>
+        <div class="adv-panel hidden" id="adv-panel-${c.id}"></div>
       </div>`;
     }).join('');
   }
@@ -1673,17 +1835,218 @@ function renderComps(ud){
       bronze:{bg:'var(--card2)',bc:'var(--border)',ic:'#cd7f32',lbl:'Bronze'}};
     hl.innerHTML=hist.reverse().map(c=>{
       const m=medalColors[c.resultado]||{bg:'var(--card2)',bc:'var(--border)',ic:'var(--muted)',lbl:'—'};
-      return `<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:${m.bg};border-radius:10px;border:1px solid ${m.bc}">
-        <i class="ti ti-medal" style="font-size:22px;color:${m.ic}"></i>
-        <div style="flex:1">
-          <div style="font-size:13px;font-weight:600">${escapeHtml(c.nome)}</div>
-          <div style="font-size:11px;color:var(--muted)">${new Date(c.data+'T12:00').toLocaleDateString('pt-BR',{month:'long',year:'numeric'})} · ${escapeHtml(c.cat||'—')}</div>
+      return `<div style="padding:12px 14px;background:${m.bg};border-radius:10px;border:1px solid ${m.bc};margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <i class="ti ti-medal" style="font-size:22px;color:${m.ic}"></i>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:600">${escapeHtml(c.nome)}</div>
+            <div style="font-size:11px;color:var(--muted)">${new Date(c.data+'T12:00').toLocaleDateString('pt-BR',{month:'long',year:'numeric'})} · ${escapeHtml(c.cat||'—')}</div>
+          </div>
+          <div style="font-family:var(--font-d);font-size:16px;font-weight:700;color:${m.ic}">${c.resultado?m.lbl:'—'}</div>
+          <button class="btn-sm" style="font-size:10px;padding:3px 7px" onclick="removeComp('${c.id}')"><i class="ti ti-trash" style="font-size:10px"></i></button>
         </div>
-        <div style="font-family:var(--font-d);font-size:16px;font-weight:700;color:${m.ic}">${c.resultado?m.lbl:'—'}</div>
-        <button class="btn-sm" style="font-size:10px;padding:3px 7px" onclick="removeComp('${c.id}')"><i class="ti ti-trash" style="font-size:10px"></i></button>
+        <div class="camp-toggle-row">
+          <button onclick="toggleAdvPanel('${c.id}')" style="flex:1"><i class="ti ti-swords"></i> Adversários (${(c.adversarios||[]).length}) · Planejado × Realizado</button>
+        </div>
+        <div class="adv-panel hidden" id="adv-panel-${c.id}"></div>
       </div>`;
     }).join('');
   }
+}
+
+/* Camp Mode: fase de preparação por data restante até a competição. */
+const CAMP_PHASES=[
+  {id:'d30', label:'D-30 · Preparação Técnica', min:21, max:Infinity, itens:[
+    {id:'tec1', txt:'Revisar pontos fracos identificados em Meu Jogo'},
+    {id:'tec2', txt:'3 sessões de drilling focadas no seu jogo principal'},
+    {id:'tec3', txt:'Mapear possíveis adversários da categoria'},
+  ]},
+  {id:'d21', label:'D-21 · Volume e Situações Específicas', min:14, max:20, itens:[
+    {id:'vol1', txt:'Aumentar volume de rounds situacionais'},
+    {id:'vol2', txt:'Testar variações de guarda/passagem no sparring'},
+    {id:'vol3', txt:'Ajustar controle de peso, se necessário'},
+  ]},
+  {id:'d14', label:'D-14 · Sparring Específico', min:7, max:13, itens:[
+    {id:'sp1', txt:'Sparrings simulando tempo e formato da luta'},
+    {id:'sp2', txt:'Revisar fichas de adversários conhecidos'},
+    {id:'sp3', txt:'Treinar entradas/quedas específicas do plano'},
+  ]},
+  {id:'d7', label:'D-7 · Redução de Volume', min:2, max:6, itens:[
+    {id:'red1', txt:'Reduzir intensidade geral dos treinos'},
+    {id:'red2', txt:'Priorizar sono e hidratação'},
+    {id:'red3', txt:'Fechar estratégia por adversário'},
+  ]},
+  {id:'d1', label:'D-1 · Checklist Final', min:1, max:1, itens:[
+    {id:'ck1', txt:'Kimono/equipamento revisado e separado'},
+    {id:'ck2', txt:'Peso conferido dentro da categoria'},
+    {id:'ck3', txt:'Estratégia revisada por adversário'},
+    {id:'ck4', txt:'Noite de sono garantida'},
+  ]},
+  {id:'d0', label:'D0 · Dia da Competição', min:0, max:0, itens:[
+    {id:'c0_1', txt:'Aquecimento completo antes da primeira luta'},
+    {id:'c0_2', txt:'Hidratação e alimentação leve entre lutas'},
+    {id:'c0_3', txt:'Executar o plano definido por adversário'},
+  ]},
+  {id:'dp1', label:'D+1 · Análise Pós-Competição', min:-Infinity, max:-1, itens:[
+    {id:'pos1', txt:'Registrar resultado final da competição'},
+    {id:'pos2', txt:'Comparar planejado × realizado em cada adversário'},
+    {id:'pos3', txt:'Anotar 3 aprendizados para o próximo camp'},
+  ]}
+];
+function computeCampPhase(diasRestantes){
+  return CAMP_PHASES.find(p=>diasRestantes>=p.min && diasRestantes<=p.max) || CAMP_PHASES[CAMP_PHASES.length-1];
+}
+function toggleCampPanel(compId){
+  const el=document.getElementById('camp-panel-'+compId);
+  if(!el) return;
+  const willShow=el.classList.contains('hidden');
+  el.classList.toggle('hidden');
+  if(willShow) renderCampPanel(compId);
+}
+function renderCampPanel(compId){
+  const el=document.getElementById('camp-panel-'+compId);
+  if(!el) return;
+  const ud=getUserData();
+  const c=compsDaModalidade(ud).find(x=>x.id===compId);
+  if(!c) return;
+  const diff=Math.ceil((new Date(c.data)-new Date(today()))/86400000);
+  const fase=computeCampPhase(diff);
+  const checklist=c.campChecklist||{};
+  const feitos=fase.itens.filter(i=>checklist[i.id]).length;
+  el.innerHTML=`
+    <div class="camp-phase-head">
+      <div>
+        <div class="camp-phase-label">${fase.label}</div>
+        <div class="camp-phase-sub">${diff>0?`${diff} dia(s) até a competição`:diff===0?'É hoje':'Competição já realizada'}</div>
+      </div>
+      <div class="camp-phase-pct">${feitos}/${fase.itens.length}</div>
+    </div>
+    <div class="camp-checklist">
+      ${fase.itens.map(i=>`
+        <label class="camp-item">
+          <input type="checkbox" ${checklist[i.id]?'checked':''} onchange="toggleCampItem('${compId}','${i.id}')">
+          <span>${escapeHtml(i.txt)}</span>
+        </label>`).join('')}
+    </div>
+  `;
+}
+function toggleCampItem(compId, itemId){
+  const ud=getUserData();
+  const c=compsDaModalidade(ud).find(x=>x.id===compId);
+  if(!c) return;
+  c.campChecklist=c.campChecklist||{};
+  c.campChecklist[itemId]=!c.campChecklist[itemId];
+  saveUserData(ud);
+  renderCampPanel(compId);
+}
+
+/* Análise de Adversário: fichas por competição, com comparação planejado x realizado. */
+function toggleAdvPanel(compId){
+  const el=document.getElementById('adv-panel-'+compId);
+  if(!el) return;
+  const willShow=el.classList.contains('hidden');
+  el.classList.toggle('hidden');
+  if(willShow) renderAdvPanel(compId);
+}
+function renderAdvPanel(compId){
+  const el=document.getElementById('adv-panel-'+compId);
+  if(!el) return;
+  const ud=getUserData();
+  const c=compsDaModalidade(ud).find(x=>x.id===compId);
+  if(!c) return;
+  const advs=c.adversarios||[];
+  const finalizada=c.status==='finalizado';
+  el.innerHTML=`
+    <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+      <button class="btn-sm" onclick="openAddAdversario('${compId}')"><i class="ti ti-plus"></i> Novo adversário</button>
+    </div>
+    ${advs.length ? advs.map(a=>`
+      <div class="adv-card">
+        <div class="adv-card-head">
+          <div>
+            <div class="adv-nome">${escapeHtml(a.nome||'Adversário')}</div>
+            <div class="adv-sub">${[a.academia,a.faixa,a.categoria].filter(Boolean).map(x=>escapeHtml(x)).join(' · ')||'sem detalhes cadastrados'}</div>
+          </div>
+          <div class="adv-card-actions">
+            <button onclick="openEditAdversario('${compId}','${a.id}')"><i class="ti ti-edit" style="font-size:12px"></i></button>
+            <button class="bib-del" onclick="deleteAdversario('${compId}','${a.id}')"><i class="ti ti-trash" style="font-size:12px"></i></button>
+          </div>
+        </div>
+        ${a.estilo?`<div class="adv-line"><strong>Estilo:</strong> ${escapeHtml(a.estilo)}</div>`:''}
+        ${a.pontosFortes?`<div class="adv-line"><strong>Pontos fortes:</strong> ${escapeHtml(a.pontosFortes)}</div>`:''}
+        ${a.pontosFracos?`<div class="adv-line"><strong>Pontos fracos:</strong> ${escapeHtml(a.pontosFracos)}</div>`:''}
+        ${a.tecnicasObservadas?`<div class="adv-line"><strong>Técnicas observadas:</strong> ${escapeHtml(a.tecnicasObservadas)}</div>`:''}
+        ${a.estrategiaPlanejada?`<div class="adv-line"><strong>Estratégia planejada:</strong> ${escapeHtml(a.estrategiaPlanejada)}</div>`:''}
+        ${a.resultado?`<div class="adv-line"><strong>Resultado do confronto:</strong> ${escapeHtml(a.resultado)}</div>`:''}
+        ${finalizada?`<div class="adv-line" style="color:${a.realizado?'var(--teal)':'var(--muted)'}"><strong>O que realmente aconteceu:</strong> ${a.realizado?escapeHtml(a.realizado):'ainda não registrado'}</div>`:''}
+      </div>`).join('') : `<div class="empty-mini">Nenhum adversário registrado para essa competição ainda.</div>`}
+  `;
+}
+function openAddAdversario(compId){
+  document.getElementById('adv-comp-id').value=compId;
+  document.getElementById('adv-id').value='';
+  ['adv-nome','adv-academia','adv-faixa','adv-categoria','adv-estilo','adv-fortes','adv-fracos','adv-tecnicas','adv-estrategia','adv-resultado','adv-realizado'].forEach(id=>{ document.getElementById(id).value=''; });
+  document.getElementById('adversario-modal-titulo').innerHTML=`Novo Adversário <button class="modal-close" onclick="closeModal('modal-adversario')"><i class="ti ti-x"></i></button>`;
+  openModal('modal-adversario');
+}
+function openEditAdversario(compId, advId){
+  const ud=getUserData();
+  const c=compsDaModalidade(ud).find(x=>x.id===compId);
+  const a=(c?.adversarios||[]).find(x=>x.id===advId);
+  if(!a) return;
+  document.getElementById('adv-comp-id').value=compId;
+  document.getElementById('adv-id').value=advId;
+  document.getElementById('adv-nome').value=a.nome||'';
+  document.getElementById('adv-academia').value=a.academia||'';
+  document.getElementById('adv-faixa').value=a.faixa||'';
+  document.getElementById('adv-categoria').value=a.categoria||'';
+  document.getElementById('adv-estilo').value=a.estilo||'';
+  document.getElementById('adv-fortes').value=a.pontosFortes||'';
+  document.getElementById('adv-fracos').value=a.pontosFracos||'';
+  document.getElementById('adv-tecnicas').value=a.tecnicasObservadas||'';
+  document.getElementById('adv-estrategia').value=a.estrategiaPlanejada||'';
+  document.getElementById('adv-resultado').value=a.resultado||'';
+  document.getElementById('adv-realizado').value=a.realizado||'';
+  document.getElementById('adversario-modal-titulo').innerHTML=`Editar Adversário <button class="modal-close" onclick="closeModal('modal-adversario')"><i class="ti ti-x"></i></button>`;
+  openModal('modal-adversario');
+}
+function saveAdversario(){
+  const compId=document.getElementById('adv-comp-id').value;
+  const advId=document.getElementById('adv-id').value;
+  const nome=document.getElementById('adv-nome').value.trim();
+  if(!nome){ toast('Dê um nome para o adversário.','error'); return; }
+  const ud=getUserData();
+  const c=compsDaModalidade(ud).find(x=>x.id===compId);
+  if(!c) return;
+  c.adversarios=c.adversarios||[];
+  const dados={
+    nome,
+    academia:document.getElementById('adv-academia').value.trim(),
+    faixa:document.getElementById('adv-faixa').value.trim(),
+    categoria:document.getElementById('adv-categoria').value.trim(),
+    estilo:document.getElementById('adv-estilo').value.trim(),
+    pontosFortes:document.getElementById('adv-fortes').value.trim(),
+    pontosFracos:document.getElementById('adv-fracos').value.trim(),
+    tecnicasObservadas:document.getElementById('adv-tecnicas').value.trim(),
+    estrategiaPlanejada:document.getElementById('adv-estrategia').value.trim(),
+    resultado:document.getElementById('adv-resultado').value.trim(),
+    realizado:document.getElementById('adv-realizado').value.trim(),
+  };
+  if(advId){
+    const idx=c.adversarios.findIndex(a=>a.id===advId);
+    if(idx>=0) c.adversarios[idx]={...c.adversarios[idx], ...dados};
+  } else {
+    c.adversarios.push({id:'adv'+Date.now(), ...dados});
+  }
+  saveUserData(ud); closeModal('modal-adversario'); renderAdvPanel(compId); toast(advId?'Adversário atualizado!':'Adversário adicionado à ficha!');
+}
+function deleteAdversario(compId, advId){
+  if(!confirm('Remover essa ficha de adversário?')) return;
+  const ud=getUserData();
+  const c=compsDaModalidade(ud).find(x=>x.id===compId);
+  if(!c) return;
+  c.adversarios=(c.adversarios||[]).filter(a=>a.id!==advId);
+  saveUserData(ud); renderAdvPanel(compId); toast('Adversário removido.');
 }
 
 function detectarPlato(ud){
@@ -1768,9 +2131,6 @@ function renderIA(ud){
       <div class="ai-text"><strong>${r.title}</strong><p>${r.desc}</p></div>
     </div>`).join('');
 }
-/* ===== COACH IA: PADRÕES TÉCNICOS =====
-   Usa exclusivamente dados reais dos treinos (subsAp/subsSf, stats.finAp/finSf).
-   Sem amostra suficiente, retorna null -> "Dados insuficientes para gerar esta análise." */
 function computeCoachPadroes(ud){
   const treinos=treinosDaModalidade(ud);
   if(treinos.length<3) return null;
@@ -2121,11 +2481,46 @@ function weekKey(){
   const week=Math.ceil((((d-onejan)/86400000)+onejan.getDay()+1)/7);
   return `${d.getFullYear()}-W${week}`;
 }
+function monthKey(){
+  const d=new Date();
+  return `${d.getFullYear()}-M${d.getMonth()+1}`;
+}
+function monthKeyOf(dataStr){
+  const d=new Date(dataStr+'T12:00:00');
+  return `${d.getFullYear()}-M${d.getMonth()+1}`;
+}
 const CHALLENGE_POOL=[
   {id:'treinos4',label:'Treinar 4x nesta semana',unidade:'treinos',meta:4,xp:60,calc:(t)=>t.length,icon:'ti-calendar-check'},
+  {id:'treinos3',label:'Treinar 3x nesta semana',unidade:'treinos',meta:3,xp:40,calc:(t)=>t.length,icon:'ti-calendar-check'},
   {id:'fin8',label:'Aplicar 8 finalizações nesta semana',unidade:'fin.',meta:8,xp:80,calc:(t)=>t.reduce((a,x)=>a+(x.stats?.finAp||0),0),icon:'ti-target'},
   {id:'spar3',label:'Fazer 3 sessões de sparring',unidade:'sessões',meta:3,xp:70,calc:(t)=>t.filter(x=>x.tipo==='sparring').length,icon:'ti-swords'},
   {id:'horas5',label:'Treinar 5 horas na semana',unidade:'h',meta:5,xp:90,calc:(t)=>Math.floor(totalMinutes(t)/60),icon:'ti-clock-hour-4'},
+  {id:'drill20',label:'20 minutos de drilling técnico',unidade:'min',meta:20,xp:50,calc:(t)=>t.filter(x=>x.tipo==='tecnica').reduce((a,x)=>a+(x.duracaoMin||0),0),icon:'ti-repeat'},
+  {id:'corr2',label:'Registrar 2 correções do professor',unidade:'correções',meta:2,xp:45,calc:(t)=>t.filter(x=>x.notaProf&&x.notaProf.trim()).length,icon:'ti-chalkboard'},
+  {id:'posfraca',label:'Trabalhar sua posição mais fraca',unidade:'sessões',meta:1,xp:65,calc:(t,ud)=>{
+    const mj=computeMeuJogo(ud);
+    const alvo=mj.pontosFracos[0];
+    if(!alvo) return 0;
+    return t.filter(x=>((x.stats?.[alvo.ap]||0)+(x.stats?.[alvo.sf]||0))>0).length;
+  },icon:'ti-target-arrow'},
+  {id:'novatec',label:'Testar uma técnica nova no treino',unidade:'técnicas',meta:1,xp:55,calc:(t,ud)=>{
+    const anteriores=new Set();
+    treinosDaModalidade(ud).filter(x=>weekKeyOf(x.data)!==weekKey()).forEach(x=>{
+      (x.subsAp||[]).forEach(s=>anteriores.add((s||'').trim().toLowerCase()));
+    });
+    const novas=new Set();
+    t.forEach(x=>(x.subsAp||[]).forEach(s=>{
+      const k=(s||'').trim().toLowerCase();
+      if(k && !anteriores.has(k)) novas.add(k);
+    }));
+    return novas.size>0?1:0;
+  },icon:'ti-sparkles'},
+];
+const CHALLENGE_POOL_MENSAL=[
+  {id:'m_treinos12',label:'Treinar 12x no mês',unidade:'treinos',meta:12,xp:200,calc:(t)=>t.length,icon:'ti-calendar-stats'},
+  {id:'m_fin25',label:'Aplicar 25 finalizações no mês',unidade:'fin.',meta:25,xp:220,calc:(t)=>t.reduce((a,x)=>a+(x.stats?.finAp||0),0),icon:'ti-target'},
+  {id:'m_horas20',label:'Treinar 20 horas no mês',unidade:'h',meta:20,xp:250,calc:(t)=>Math.floor(totalMinutes(t)/60),icon:'ti-clock-hour-4'},
+  {id:'m_correcoes5',label:'Registrar 5 correções do professor no mês',unidade:'correções',meta:5,xp:150,calc:(t)=>t.filter(x=>x.notaProf&&x.notaProf.trim()).length,icon:'ti-chalkboard'},
 ];
 function pickWeeklyChallenges(){
   const wk=weekKey();
@@ -2135,40 +2530,53 @@ function pickWeeklyChallenges(){
   const picks=[CHALLENGE_POOL[idxA]]; if(idxB!==idxA) picks.push(CHALLENGE_POOL[idxB]);
   return picks;
 }
+function pickMonthlyChallenges(){
+  const mk=monthKey();
+  let seed=0; for(const c of mk) seed=(seed*31+c.charCodeAt(0))%1000;
+  const idx=seed%CHALLENGE_POOL_MENSAL.length;
+  return [CHALLENGE_POOL_MENSAL[idx]];
+}
+function challengeCardHtml(c, treinosPeriodo, ud, periodoKey){
+  const prog=Math.min(c.meta, c.calc(treinosPeriodo, ud));
+  const pct=Math.min(100,Math.round(prog/c.meta*100));
+  const claimedKey=periodoKey+'_'+c.id;
+  const claimed=!!ud.challenges[claimedKey];
+  const done=prog>=c.meta;
+  return `<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:13px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600"><i class="ti ${c.icon}" style="color:var(--gold)"></i>${c.label}</div>
+      <span style="font-size:11px;color:var(--muted)">${prog}/${c.meta} ${c.unidade}</span>
+    </div>
+    <div style="height:6px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden;margin-bottom:10px">
+      <div style="height:100%;width:${pct}%;background:${done?'var(--teal)':'var(--gold)'};border-radius:4px"></div>
+    </div>
+    ${claimed
+      ? `<span style="font-size:11px;color:var(--teal)"><i class="ti ti-check"></i> Recompensa coletada (+${c.xp} xp)</span>`
+      : done
+        ? `<button class="btn-sm" style="background:var(--teal);border:none;color:#04231f" onclick="claimChallenge('${claimedKey}',${c.xp})">Coletar +${c.xp} xp</button>`
+        : `<span style="font-size:11px;color:var(--muted)">Continue treinando para completar</span>`}
+  </div>`;
+}
 function renderChallenges(ud){
-  const wk=weekKey();
-  const treinosSemana=(ud.treinos||[]).filter(t=>weekKeyOf(t.data)===wk);
   ud.challenges=ud.challenges||{};
-  const picks=pickWeeklyChallenges();
-  const list=document.getElementById('challenges-list');
-  list.innerHTML=picks.map(c=>{
-    const prog=Math.min(c.meta, c.calc(treinosSemana));
-    const pct=Math.min(100,Math.round(prog/c.meta*100));
-    const claimedKey=wk+'_'+c.id;
-    const claimed=!!ud.challenges[claimedKey];
-    const done=prog>=c.meta;
-    return `<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:13px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600"><i class="ti ${c.icon}" style="color:var(--gold)"></i>${c.label}</div>
-        <span style="font-size:11px;color:var(--muted)">${prog}/${c.meta} ${c.unidade}</span>
-      </div>
-      <div style="height:6px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden;margin-bottom:10px">
-        <div style="height:100%;width:${pct}%;background:${done?'var(--teal)':'var(--gold)'};border-radius:4px"></div>
-      </div>
-      ${claimed
-        ? `<span style="font-size:11px;color:var(--teal)"><i class="ti ti-check"></i> Recompensa coletada (+${c.xp} xp)</span>`
-        : done
-          ? `<button class="btn-sm" style="background:var(--teal);border:none;color:#04231f" onclick="claimChallenge('${c.id}','${claimedKey}',${c.xp})">Coletar +${c.xp} xp</button>`
-          : `<span style="font-size:11px;color:var(--muted)">Continue treinando para completar</span>`}
-    </div>`;
-  }).join('');
+  const wk=weekKey();
+  const treinosSemana=treinosDaModalidade(ud).filter(t=>weekKeyOf(t.data)===wk);
+  const picksSemana=pickWeeklyChallenges();
+  const listSemana=document.getElementById('challenges-list');
+  if(listSemana) listSemana.innerHTML=picksSemana.map(c=>challengeCardHtml(c, treinosSemana, ud, wk)).join('');
+
+  const mk=monthKey();
+  const treinosMes=treinosDaModalidade(ud).filter(t=>monthKeyOf(t.data)===mk);
+  const picksMes=pickMonthlyChallenges();
+  const listMes=document.getElementById('challenges-list-mensal');
+  if(listMes) listMes.innerHTML=picksMes.map(c=>challengeCardHtml(c, treinosMes, ud, mk)).join('');
 }
 function weekKeyOf(dataStr){
-  const d=new Date(dataStr); const onejan=new Date(d.getFullYear(),0,1);
+  const d=new Date(dataStr+'T12:00:00'); const onejan=new Date(d.getFullYear(),0,1);
   const week=Math.ceil((((d-onejan)/86400000)+onejan.getDay()+1)/7);
   return `${d.getFullYear()}-W${week}`;
 }
-function claimChallenge(id,claimedKey,xp){
+function claimChallenge(claimedKey,xp){
   const ud=getUserData();
   ud.challenges=ud.challenges||{};
   if(ud.challenges[claimedKey]) return;
@@ -2315,6 +2723,7 @@ function openAddComp(){
   document.getElementById('c-data').value='';
   document.getElementById('c-local').value='';
   document.getElementById('c-cat').value='';
+  document.getElementById('c-objetivo').value='';
   document.getElementById('c-status').value='planejado';
   document.getElementById('c-resultado').value='';
   document.getElementById('c-resultado-wrap').style.display='none';
@@ -2333,8 +2742,10 @@ function saveComp(){
     id:'c'+Date.now(), nome, data, esporte:ud.profile.esporte||'jiu-jitsu',
     local:document.getElementById('c-local').value.trim(),
     cat:document.getElementById('c-cat').value.trim(),
+    objetivo:document.getElementById('c-objetivo').value.trim(),
     status:document.getElementById('c-status').value,
-    resultado:document.getElementById('c-status').value==='finalizado'?document.getElementById('c-resultado').value:''
+    resultado:document.getElementById('c-status').value==='finalizado'?document.getElementById('c-resultado').value:'',
+    campChecklist:{}, adversarios:[]
   });
   saveUserData(ud); refreshAll(); closeModal('modal-comp'); toast('Competição adicionada!');
 }
