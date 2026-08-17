@@ -92,21 +92,35 @@
 <div class="app hidden" id="main-app">
   <nav class="sidebar">
     <div class="logo-mark" onclick="showScreen('dashboard')">LJ</div>
-    <button type="button" class="nav-item active" aria-label="Dashboard" onclick="showScreen('dashboard')"><i class="ti ti-layout-dashboard"></i><span class="tip">Dashboard</span></button>
-    <button type="button" class="nav-item" aria-label="Meu Jogo" onclick="showScreen('meujogo')"><i class="ti ti-target-arrow"></i><span class="tip">Meu Jogo</span></button>
+    <button type="button" class="nav-item active" aria-label="Dashboard" data-mobile="primary" onclick="showScreen('dashboard')"><i class="ti ti-layout-dashboard"></i><span class="tip">Dashboard</span></button>
+    <button type="button" class="nav-item" aria-label="Meu Jogo" data-mobile="primary" onclick="showScreen('meujogo')"><i class="ti ti-target-arrow"></i><span class="tip">Meu Jogo</span></button>
     <button type="button" class="nav-item" aria-label="Biblioteca Técnica" onclick="showScreen('biblioteca')"><i class="ti ti-notebook"></i><span class="tip">Biblioteca</span></button>
-    <button type="button" class="nav-item" aria-label="Registrar Treino" onclick="showScreen('registro')"><i class="ti ti-plus-circle">RT</i><span class="tip">Registrar Treino</span></button>
+    <button type="button" class="nav-item" aria-label="Registrar Treino" data-mobile="primary" onclick="showScreen('registro')"><i class="ti ti-plus-circle">RT</i><span class="tip">Registrar Treino</span></button>
     <button type="button" class="nav-item" aria-label="Rendimento" onclick="showScreen('rendimento')"><i class="ti ti-chart-infographic"></i><span class="tip">Rendimento</span></button>
-    <button type="button" class="nav-item" aria-label="Evolução" onclick="showScreen('evolucao')"><i class="ti ti-trophy"></i><span class="tip">Evolução</span></button>
+    <button type="button" class="nav-item" aria-label="Evolução" data-mobile="primary" onclick="showScreen('evolucao')"><i class="ti ti-trophy"></i><span class="tip">Evolução</span></button>
     <button type="button" class="nav-item" aria-label="Controle Físico" onclick="showScreen('fisico')"><i class="ti ti-heartbeat"></i><span class="tip">Controle Físico</span></button>
     <button type="button" class="nav-item" aria-label="Competições" onclick="showScreen('competicoes')"><i class="ti ti-medal"></i><span class="tip">Competições</span></button>
     <button type="button" class="nav-item" aria-label="Análise IA" onclick="showScreen('ia')"><i class="ti ti-brain"></i><span class="tip">Análise IA</span></button>
     <button type="button" class="nav-item" aria-label="Social" onclick="showScreen('social')"><i class="ti ti-users"></i><span class="tip">Social</span></button>
+    <button type="button" class="mobile-more-btn" id="mobile-more-btn" aria-label="Mais opções" onclick="toggleMobileMore()"><i class="ti ti-dots"></i><span class="tip">Mais</span></button>
     <div class="nav-bottom">
-      <button type="button" class="nav-item" aria-label="Perfil" onclick="showScreen('perfil')"><i class="ti ti-user-circle"></i><span class="tip">Perfil</span></button>
+      <button type="button" class="nav-item" aria-label="Perfil" data-mobile="primary" onclick="showScreen('perfil')"><i class="ti ti-user-circle"></i><span class="tip">Perfil</span></button>
       <button type="button" class="nav-item" aria-label="Sair" onclick="doLogout()" style="margin-top:4px"><i class="ti ti-logout"></i><span class="tip">Sair</span></button>
     </div>
   </nav>
+  <div class="mobile-more-backdrop" id="mobile-more-backdrop" onclick="closeMobileMore()"></div>
+  <div class="mobile-more-sheet" id="mobile-more-sheet">
+    <div class="mobile-more-handle"></div>
+    <div class="mobile-more-grid">
+      <button type="button" onclick="showScreenFromMore('biblioteca')"><i class="ti ti-notebook"></i><span>Biblioteca</span></button>
+      <button type="button" onclick="showScreenFromMore('rendimento')"><i class="ti ti-chart-infographic"></i><span>Rendimento</span></button>
+      <button type="button" onclick="showScreenFromMore('fisico')"><i class="ti ti-heartbeat"></i><span>Físico</span></button>
+      <button type="button" onclick="showScreenFromMore('competicoes')"><i class="ti ti-medal"></i><span>Competições</span></button>
+      <button type="button" onclick="showScreenFromMore('ia')"><i class="ti ti-brain"></i><span>Análise IA</span></button>
+      <button type="button" onclick="showScreenFromMore('social')"><i class="ti ti-users"></i><span>Social</span></button>
+      <button type="button" onclick="doLogout()"><i class="ti ti-logout"></i><span>Sair</span></button>
+    </div>
+  </div>
   <main class="main">
     <div class="screen active" id="screen-dashboard">
       <div class="topbar">
@@ -123,6 +137,7 @@
         </div>
       </div>
       <div class="foco-dia" id="foco-dia-card"></div>
+      <div class="rc-chips" id="rc-chips-dash"></div>
       <div class="stats-row">
         <div class="stat-card red" onclick="showScreen('registro')">
           <div class="stat-label">Treinos este mês</div>
@@ -568,6 +583,16 @@
         <button class="btn-sm" onclick="openEditFisico()"><i class="ti ti-edit" style="font-size:13px"></i> Atualizar dados</button>
       </div>
       <div class="phys-grid" id="phys-grid"></div>
+      <div class="g2e" style="margin-bottom:14px">
+        <div class="card" id="recovery-card">
+          <div class="card-title"><span><i class="ti ti-battery-charging" style="color:var(--teal);margin-right:8px"></i>Recuperação</span></div>
+          <div id="recovery-content"></div>
+        </div>
+        <div class="card" id="load-card">
+          <div class="card-title"><span><i class="ti ti-gauge" style="color:var(--gold);margin-right:8px"></i>Carga de Treinamento</span></div>
+          <div id="load-content"></div>
+        </div>
+      </div>
       <div class="card">
         <div class="card-title">Evolução do Peso</div>
         <div class="chart-wrap" style="height:150px"><canvas id="pesoChart"></canvas></div>
@@ -670,8 +695,11 @@
           <div class="rank-list" id="rank-list"></div>
         </div>
         <div class="card">
-          <div class="card-title"><span><i class="ti ti-target" style="color:var(--red);margin-right:8px"></i>Desafios Ativos</span> <span class="card-badge badge-gold">Semanal</span></div>
-          <div id="challenges-list" style="display:flex;flex-direction:column;gap:10px"></div>
+          <div class="card-title"><span><i class="ti ti-target" style="color:var(--red);margin-right:8px"></i>Desafios</span></div>
+          <div style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Esta semana</div>
+          <div id="challenges-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px"></div>
+          <div style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Este mês</div>
+          <div id="challenges-list-mensal" style="display:flex;flex-direction:column;gap:10px"></div>
         </div>
       </div>
       <div class="g2" style="margin-top:12px">
@@ -824,6 +852,27 @@
     <button class="btn-primary" onclick="saveMetas()">Salvar metas</button>
   </div>
 </div>
+<div class="modal-bg hidden" id="modal-adversario">
+  <div class="modal">
+    <h2 id="adversario-modal-titulo">Novo Adversário <button class="modal-close" onclick="closeModal('modal-adversario')"><i class="ti ti-x"></i></button></h2>
+    <input type="hidden" id="adv-comp-id">
+    <input type="hidden" id="adv-id">
+    <div class="fg"><label class="fl">Nome</label><input type="text" id="adv-nome" class="fi" placeholder="Nome do adversário"></div>
+    <div class="fr">
+      <div class="fg"><label class="fl">Academia</label><input type="text" id="adv-academia" class="fi"></div>
+      <div class="fg"><label class="fl">Faixa</label><input type="text" id="adv-faixa" class="fi"></div>
+    </div>
+    <div class="fg"><label class="fl">Categoria</label><input type="text" id="adv-categoria" class="fi" placeholder="Ex: Adulto Azul -94kg"></div>
+    <div class="fg"><label class="fl">Estilo de jogo</label><input type="text" id="adv-estilo" class="fi" placeholder="Ex: guardeiro, pressão, wrestling"></div>
+    <div class="fg"><label class="fl">Pontos fortes</label><textarea id="adv-fortes" class="fi" rows="2"></textarea></div>
+    <div class="fg"><label class="fl">Pontos fracos</label><textarea id="adv-fracos" class="fi" rows="2"></textarea></div>
+    <div class="fg"><label class="fl">Técnicas observadas</label><textarea id="adv-tecnicas" class="fi" rows="2"></textarea></div>
+    <div class="fg"><label class="fl">Estratégia planejada</label><textarea id="adv-estrategia" class="fi" rows="2" placeholder="Como você pretende jogar contra ele"></textarea></div>
+    <div class="fg"><label class="fl">Resultado do confronto (se já aconteceu)</label><input type="text" id="adv-resultado" class="fi" placeholder="Ex: vitória por pontos, derrota por finalização..."></div>
+    <div class="fg"><label class="fl">O que realmente aconteceu (pós-competição)</label><textarea id="adv-realizado" class="fi" rows="2" placeholder="Compare com a estratégia planejada acima"></textarea></div>
+    <button class="btn-primary" onclick="saveAdversario()">Salvar adversário</button>
+  </div>
+</div>
 <div class="modal-bg hidden" id="modal-tecnica">
   <div class="modal">
     <h2 id="tecnica-modal-titulo">Nova Técnica <button class="modal-close" onclick="closeModal('modal-tecnica')"><i class="ti ti-x"></i></button></h2>
@@ -864,6 +913,7 @@
     <div class="fg"><label class="fl">Data</label><input type="date" id="c-data" class="fi"></div>
     <div class="fg"><label class="fl">Local</label><input type="text" id="c-local" class="fi" placeholder="São Paulo, SP"></div>
     <div class="fg"><label class="fl">Categoria</label><input type="text" id="c-cat" class="fi" placeholder="Roxa Médio"></div>
+    <div class="fg"><label class="fl">Objetivo para essa competição</label><input type="text" id="c-objetivo" class="fi" placeholder="Ex: chegar na final, testar o jogo de guarda novo"></div>
     <div class="fg"><label class="fl">Status</label>
       <select id="c-status" class="fi">
         <option value="planejado">Planejado</option>
