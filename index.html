@@ -92,14 +92,17 @@
 <div class="app hidden" id="main-app">
   <nav class="sidebar">
     <div class="logo-mark" onclick="showScreen('dashboard')">LJ</div>
-    <button type="button" class="nav-item active" aria-label="Dashboard" data-mobile="primary" onclick="showScreen('dashboard')"><i class="ti ti-layout-dashboard"></i><span class="tip">Dashboard</span></button>
+    <span class="nav-group-label">Principal</span>
+    <button type="button" class="nav-item active" aria-label="Dashboard" data-mobile="primary" onclick="showScreen('dashboard')"><i class="ti ti-layout-dashboard"></i><span class="tip">Início</span></button>
     <button type="button" class="nav-item" aria-label="Meu Jogo" data-mobile="primary" onclick="showScreen('meujogo')"><i class="ti ti-target-arrow"></i><span class="tip">Meu Jogo</span></button>
     <button type="button" class="nav-item" aria-label="Biblioteca Técnica" onclick="showScreen('biblioteca')"><i class="ti ti-notebook"></i><span class="tip">Biblioteca</span></button>
-    <button type="button" class="nav-item" aria-label="Registrar Treino" data-mobile="primary" onclick="showScreen('registro')"><i class="ti ti-plus-circle">RT</i><span class="tip">Registrar Treino</span></button>
+    <button type="button" class="nav-item nav-item-cta" aria-label="Registrar Treino" data-mobile="primary" onclick="showScreen('registro')"><i class="ti ti-plus-circle">RT</i><span class="tip">Registrar Treino</span></button>
+    <span class="nav-group-label">Performance</span>
     <button type="button" class="nav-item" aria-label="Rendimento" onclick="showScreen('rendimento')"><i class="ti ti-chart-infographic"></i><span class="tip">Rendimento</span></button>
-    <button type="button" class="nav-item" aria-label="Evolução" data-mobile="primary" onclick="showScreen('evolucao')"><i class="ti ti-trophy"></i><span class="tip">Evolução</span></button>
-    <button type="button" class="nav-item" aria-label="Controle Físico" onclick="showScreen('fisico')"><i class="ti ti-heartbeat"></i><span class="tip">Controle Físico</span></button>
+    <button type="button" class="nav-item" aria-label="Evolução" onclick="showScreen('evolucao')"><i class="ti ti-trophy"></i><span class="tip">Evolução</span></button>
+    <button type="button" class="nav-item" aria-label="Controle Físico" onclick="showScreen('fisico')"><i class="ti ti-heartbeat"></i><span class="tip">Físico</span></button>
     <button type="button" class="nav-item" aria-label="Competições" onclick="showScreen('competicoes')"><i class="ti ti-medal"></i><span class="tip">Competições</span></button>
+    <span class="nav-group-label">Explorar</span>
     <button type="button" class="nav-item" aria-label="Análise IA" onclick="showScreen('ia')"><i class="ti ti-brain"></i><span class="tip">Análise IA</span></button>
     <button type="button" class="nav-item" aria-label="Social" onclick="showScreen('social')"><i class="ti ti-users"></i><span class="tip">Social</span></button>
     <button type="button" class="mobile-more-btn" id="mobile-more-btn" aria-label="Mais opções" onclick="toggleMobileMore()"><i class="ti ti-dots"></i><span class="tip">Mais</span></button>
@@ -112,6 +115,7 @@
   <div class="mobile-more-sheet" id="mobile-more-sheet">
     <div class="mobile-more-handle"></div>
     <div class="mobile-more-grid">
+      <button type="button" onclick="showScreenFromMore('evolucao')"><i class="ti ti-trophy"></i><span>Evolução</span></button>
       <button type="button" onclick="showScreenFromMore('biblioteca')"><i class="ti ti-notebook"></i><span>Biblioteca</span></button>
       <button type="button" onclick="showScreenFromMore('rendimento')"><i class="ti ti-chart-infographic"></i><span>Rendimento</span></button>
       <button type="button" onclick="showScreenFromMore('fisico')"><i class="ti ti-heartbeat"></i><span>Físico</span></button>
